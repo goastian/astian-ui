@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist-lib/types"
+  },
+  "include": [
+    "src/index.ts",
+    "src/components/**/*.vue",
+    "src/composables/**/*.ts",
+    "src/migration/**/*.ts",
+    "src/types/**/*.ts",
+    "src/utils/**/*.ts",
+    "src/env.d.ts"
+  ],
+  "exclude": ["src/pages", "src/layouts", "src/router", "src/main.ts", "src/App.vue"]
+}

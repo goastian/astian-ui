@@ -1,0 +1,48 @@
+@import './tokens.css';
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--a-bg-canvas);
+  color: var(--a-text-primary);
+  font-family: var(--a-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea, select { font: inherit; }
+::selection { background: var(--a-primary-soft); color: var(--a-text-primary); }
+
+.skip-link {
+  position: fixed;
+  z-index: 5000;
+  left: 1rem;
+  top: 1rem;
+  transform: translateY(-180%);
+  background: var(--a-text-primary);
+  color: var(--a-bg-raised);
+  padding: .65rem 1rem;
+  border-radius: var(--a-radius-sm);
+  transition: transform var(--a-motion-fast);
+}
+.skip-link:focus { transform: translateY(0); }
+
+.a-page { width: min(100%, 1480px); margin-inline: auto; padding: clamp(20px, 3vw, 44px); }
+.a-eyebrow { color: var(--a-primary); font: 700 .72rem/1 var(--a-font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.a-display { margin: 0; max-width: 18ch; font-size: clamp(2.35rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.065em; text-wrap: balance; }
+.a-lede { max-width: 62ch; color: var(--a-text-secondary); font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.7; text-wrap: pretty; }
+.a-section { padding-block: clamp(32px, 6vw, 76px); }
+.a-section__header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .65fr); gap: 24px; align-items: end; margin-bottom: 28px; }
+.a-section__header h2 { margin: 8px 0 0; font-size: clamp(1.65rem, 3vw, 2.7rem); line-height: 1.05; letter-spacing: -.04em; }
+.a-grid { display: grid; gap: 16px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.a-panel { background: var(--a-bg-surface); border: 1px solid var(--a-border); border-radius: var(--a-radius-md); }
+.a-focusable:focus-visible, .q-focusable:focus-visible { outline: 3px solid color-mix(in srgb, var(--a-primary) 36%, transparent); outline-offset: 2px; }
+.a-tabular { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  .a-section__header { grid-template-columns: 1fr; }
+  .a-page { padding-inline: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
