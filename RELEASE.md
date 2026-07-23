@@ -6,7 +6,7 @@
 
 - Each release updates `CHANGELOG.md`, runs all validation, and is released from a signed Git tag when the infrastructure allows it.
 
-- The expected log is npm with public access for `@astian/astian-ui`; the actual release requires an authorized account in the `@astian` organization.
+- The expected log is npm with public access for `@goastian/astian-ui`; the actual release requires an authorized account in the `@goastian` organization.
 
 ## Quality Gateway
 
