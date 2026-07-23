@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type { AstianAccent, AstianSize } from '@/types/ui'
+import type { AstianAccent, AstianSize } from '../types/ui'
 
 const props = withDefaults(defineProps<{
   label?: string
@@ -42,7 +42,7 @@ const initials = computed(() => props.label?.trim().split(/\s+/).map((part) => p
 .a-avatar--blue, .a-avatar--dark-blue { --avatar-color: var(--a-info); }
 .a-avatar--red { --avatar-color: var(--a-negative); }
 .a-avatar--yellow { --avatar-color: var(--a-warning); }
-.a-avatar--pink { --avatar-color: #b65a85; }
+.a-avatar--pink { --avatar-color: var(--a-color-pink); }
 .a-avatar--inactive { opacity: .45; }
 .a-avatar--disabled { filter: grayscale(1); opacity: .38; }
 .a-avatar__badge { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 28%; aspect-ratio: 1; min-width: 7px; border: 2px solid var(--a-bg-raised); border-radius: 50%; background: var(--a-positive); color: white; }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AstianOption } from '@/types/ui'
+import type { AstianOption } from '../types/ui'
 
 const model = defineModel<string | number | null>({ default: null })
 withDefaults(defineProps<{ options: AstianOption[]; label?: string; placeholder?: string; hint?: string; disabled?: boolean; clearable?: boolean; multiple?: boolean; useInput?: boolean; size?: 'small' | 'medium' | 'large' }>(), { size: 'medium' })

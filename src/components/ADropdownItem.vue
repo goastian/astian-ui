@@ -12,5 +12,5 @@ defineEmits<{ click: [] }>()
 </template>
 
 <style scoped>
-.a-dropdown-item { min-height: 40px; margin: 2px 4px; border-radius: 8px; color: var(--a-text-primary); }.a-dropdown-item:hover { background: var(--a-bg-hover); }.a-dropdown-item :deep(.q-item__section--avatar) { min-width: 34px; color: var(--a-text-secondary); }.a-dropdown-item :deep(.q-item__label--caption) { color: var(--a-text-secondary); }.a-dropdown-item--destructive,.a-dropdown-item--destructive :deep(.q-icon) { color: var(--a-negative); }.a-dropdown-item kbd { font: .65rem var(--a-font-mono); color: var(--a-text-tertiary); }
+.a-dropdown-item { min-height: var(--a-target-min); margin: var(--a-space-1); border-radius: var(--a-radius-xs); color: var(--a-text-primary); }.a-dropdown-item:hover { background: var(--a-bg-hover); }.a-dropdown-item :deep(.q-item__section--avatar) { min-width: var(--a-target-min); color: var(--a-text-secondary); }.a-dropdown-item :deep(.q-item__label--caption) { color: var(--a-text-secondary); }.a-dropdown-item--destructive,.a-dropdown-item--destructive :deep(.q-icon) { color: var(--a-negative); }.a-dropdown-item kbd { font: var(--a-font-size-xs) var(--a-font-mono); color: var(--a-text-tertiary); }
 </style>

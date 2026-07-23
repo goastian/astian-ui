@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AstianSize, AstianTone, AstianVariant } from '@/types/ui'
+import type { AstianSize, AstianTone, AstianVariant } from '../types/ui'
 
 withDefaults(defineProps<{ label?: string; startIcon?: string; endIcon?: string; tone?: AstianTone; size?: Extract<AstianSize, 'small' | 'medium' | 'large'>; variant?: AstianVariant; disabled?: boolean; interactive?: boolean }>(), { tone: 'primary', size: 'medium', variant: 'unfilled' })
 defineEmits<{ click: [event: MouseEvent] }>()

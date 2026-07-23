@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 
@@ -12,6 +12,7 @@ import { shouldCloseProductDrawer } from '@/utils/navigation'
 const route = useRoute()
 const $q = useQuasar()
 const drawerOpen = ref(false)
+const mainContent = ref<HTMLElement | null>(null)
 const { preference } = useThemeMode()
 
 const products = [
@@ -32,10 +33,16 @@ const themeOptions = [
 const handleProductSelected = () => {
   if (shouldCloseProductDrawer($q.screen.width < 980)) drawerOpen.value = false
 }
+
+watch(() => route.fullPath, async () => {
+  await nextTick()
+  mainContent.value?.focus({ preventScroll: true })
+})
 </script>
 
 <template>
   <q-layout view="hHh Lpr lFf" class="product-shell">
+    <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
     <q-header class="product-shell__header">
       <q-toolbar class="product-shell__toolbar">
         <AIconButton class="product-shell__menu" icon="menu" label="Abrir navegación" @click="drawerOpen = !drawerOpen" />
@@ -66,12 +73,17 @@ const handleProductSelected = () => {
       </nav>
     </q-drawer>
 
-    <q-page-container id="main-content"><router-view /></q-page-container>
+    <q-page-container>
+      <main id="main-content" ref="mainContent" class="product-shell__main" tabindex="-1">
+        <router-view />
+      </main>
+    </q-page-container>
   </q-layout>
 </template>
 
 <style scoped>
 .product-shell { background: var(--a-bg-canvas); color: var(--a-text-primary); }
+.product-shell__main { min-width: 0; outline: none; }
 .product-shell__header { border-bottom: 1px solid var(--a-border); background: color-mix(in srgb, var(--a-bg-canvas) 88%, transparent); color: var(--a-text-primary); backdrop-filter: blur(18px); }
 .product-shell__toolbar { min-height: 66px; padding-inline: clamp(12px, 2vw, 28px); gap: 10px; }
 .product-shell__menu { display: none; }.product-shell__brand { display: inline-flex; align-items: center; gap: 10px; min-width: 220px; color: inherit; text-decoration: none; }.product-shell__brand > span:last-child { display: grid; line-height: 1.05; }.product-shell__brand strong { font-size: 1rem; letter-spacing: -.03em; }.product-shell__brand small { color: var(--a-text-tertiary); font: .57rem/1.3 var(--a-font-mono); letter-spacing: .05em; text-transform: uppercase; }

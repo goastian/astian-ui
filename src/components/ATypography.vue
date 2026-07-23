@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type { AstianTone } from '@/types/ui'
+import type { AstianTone } from '../types/ui'
 
 type TypographySize = 'h1' | 'h2' | 'h3' | 'h4' | 'large' | 'medium' | 'small' | 'caption'
 type TypographyWeight = 'regular' | 'medium' | 'bold'

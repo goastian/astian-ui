@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import AAvatar from './AAvatar.vue'
-import type { AstianPerson, AstianSize } from '@/types/ui'
+import type { AstianPerson, AstianSize } from '../types/ui'
 
 const props = withDefaults(defineProps<{ people: AstianPerson[]; maxDisplayed?: number; size?: Extract<AstianSize, 'xsmall' | 'small' | 'medium' | 'xmedium' | 'large'>; layout?: 'inline' | 'stacked' }>(), { maxDisplayed: 4, size: 'medium', layout: 'stacked' })
 const visible = computed(() => props.people.slice(0, props.maxDisplayed))

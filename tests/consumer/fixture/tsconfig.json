@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "types": ["vite/client"]
   },
   "include": ["src/**/*.ts", "src/**/*.vue"]

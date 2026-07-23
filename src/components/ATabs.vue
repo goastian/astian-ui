@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AstianTab } from '@/types/ui'
+import type { AstianTab } from '../types/ui'
 const model = defineModel<string>({ required: true })
 withDefaults(defineProps<{ tabs: AstianTab[]; size?: 'small' | 'medium' | 'large'; fullWidth?: boolean; vertical?: boolean }>(), { size: 'medium' })
 </script>

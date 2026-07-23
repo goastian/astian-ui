@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type { AstianActionType } from '@/types/ui'
+import type { AstianActionType } from '../types/ui'
 
 const props = withDefaults(defineProps<{
   label?: string
@@ -41,13 +41,13 @@ const sizeName = computed(() => ({ small: 'sm', medium: 'md', large: 'lg' } as c
 </template>
 
 <style scoped>
-.a-button { min-height: 40px; border-radius: var(--a-radius-sm); font-weight: 650; letter-spacing: -.01em; transition: transform var(--a-motion-fast), background var(--a-motion-fast), color var(--a-motion-fast), box-shadow var(--a-motion-fast); }
+.a-button { min-height: var(--a-target-min); border-radius: var(--a-radius-sm); font-weight: 650; letter-spacing: -.01em; transition: transform var(--a-motion-fast), background var(--a-motion-fast), color var(--a-motion-fast), box-shadow var(--a-motion-fast); }
 .a-button:hover { transform: translateY(-1px); }
 .a-button:active { transform: translateY(1px) scale(.99); }
-.a-button--small { min-height: 32px; padding-inline: 10px; }
-.a-button--large { min-height: 48px; padding-inline: 18px; border-radius: 12px; }
+.a-button--small { min-height: var(--a-target-min); padding-inline: var(--a-space-3); }
+.a-button--large { min-height: var(--a-control-lg); padding-inline: var(--a-space-5); border-radius: var(--a-radius-sm); }
 .a-button--full { width: 100%; }
-.a-button--compact { min-height: 30px; padding-inline: 8px; }
+.a-button--compact { min-height: var(--a-target-min); padding-inline: var(--a-space-2); }
 .a-button--primary { background: var(--a-primary); color: var(--a-text-inverse); box-shadow: 0 8px 18px color-mix(in srgb, var(--a-primary) 18%, transparent); }
 .a-button--primary:hover { background: var(--a-primary-hover); }
 .a-button--secondary { background: var(--a-bg-raised); color: var(--a-text-primary); box-shadow: inset 0 0 0 1px var(--a-border), var(--a-shadow-1); }

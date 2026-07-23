@@ -1,6 +1,11 @@
-import type { GlobalQuasarIconMapFn } from 'quasar'
-
 const EXPLICIT_ICON_PROTOCOL = /^(?:none$|[Mm]\s?[-+]?\.?\d|r_|o_|s_|sym_[ors]_|mdi-|icon-|bt-|eva-|ion-|fa-|bi-|i-|img:|svguse:)/
+
+export interface AstianIconMapResult {
+  cls: string
+  content?: string
+}
+
+export type AstianIconMapFn = (iconName: string) => AstianIconMapResult | undefined
 
 /**
  * Astian product code uses readable, unprefixed Material icon names.
@@ -8,7 +13,7 @@ const EXPLICIT_ICON_PROTOCOL = /^(?:none$|[Mm]\s?[-+]?\.?\d|r_|o_|s_|sym_[ors]_|
  * while Astian ships Material Icons Round. This mapping keeps one icon
  * contract across QIcon, QBtn, QInput, QSelect and product-level components.
  */
-export const astianIconMapFn: GlobalQuasarIconMapFn = (iconName) => {
+export const astianIconMapFn: AstianIconMapFn = (iconName) => {
   if (EXPLICIT_ICON_PROTOCOL.test(iconName)) return undefined
 
   return {

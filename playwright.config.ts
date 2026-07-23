@@ -31,7 +31,7 @@ export default defineConfig({
     { name: 'mobile-dark', use: { viewport: mobile, colorScheme: 'dark', isMobile: true, hasTouch: true } }
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4173',
+    command: 'npm run build:app && npm run preview -- --host 127.0.0.1 --port 4173',
     url: 'http://127.0.0.1:4173/ui',
     reuseExistingServer: false,
     timeout: 120_000

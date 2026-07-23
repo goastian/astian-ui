@@ -10,17 +10,24 @@ export interface AstianNotification {
   action?: { label: string; handler: () => void }
 }
 
+export type AstianNotificationDismiss = () => void
+
 export function useAstianNotify() {
-  const notify = ({ title, body, icon, type, duration = 4000, persist, action }: AstianNotification) => Notify.create({
-    type,
-    icon,
-    timeout: persist ? 0 : duration,
-    message: title ? `<strong>${title}</strong><br>${body}` : body,
-    html: true,
-    actions: action ? [{ label: action.label, color: 'white', handler: action.handler }] : undefined,
-    classes: 'a-notification',
-    progress: !persist
-  })
+  const notify = ({ title, body, icon, type, duration = 4000, persist, action }: AstianNotification): AstianNotificationDismiss => {
+    const dismiss = Notify.create({
+      type,
+      icon,
+      timeout: persist ? 0 : duration,
+      message: title ?? body,
+      caption: title ? body : undefined,
+      html: false,
+      actions: action ? [{ label: action.label, handler: action.handler }] : undefined,
+      classes: 'a-notification',
+      progress: !persist
+    })
+
+    return () => dismiss()
+  }
 
   return { notify }
 }

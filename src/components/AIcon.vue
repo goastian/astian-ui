@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { AstianSize, AstianTone } from '@/types/ui'
+import type { AstianSize, AstianTone } from '../types/ui'
 
 const props = withDefaults(defineProps<{ name: string; size?: AstianSize | number; tone?: AstianTone; rotate?: number; disabled?: boolean; label?: string; legacy?: boolean }>(), { size: 'medium', tone: 'primary' })
 const resolvedSize = computed(() => typeof props.size === 'number' ? `${props.size}px` : ({ xsmall: '12px', small: '16px', medium: '20px', xmedium: '24px', large: '32px', xlarge: '48px' } as const)[props.size])

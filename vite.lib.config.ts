@@ -18,7 +18,8 @@ export default defineConfig({
     lib: {
       entry: {
         index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
-        cloud: fileURLToPath(new URL('./src/cloud/index.ts', import.meta.url))
+        cloud: fileURLToPath(new URL('./src/cloud/index.ts', import.meta.url)),
+        style: fileURLToPath(new URL('./src/style.ts', import.meta.url))
       },
       name: 'AstianUI',
       formats: ['es', 'cjs'],

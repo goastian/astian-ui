@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { QMenuProps } from 'quasar'
+import type { AAnchorOrigin } from '../types/core'
 
 const open = defineModel<boolean>({ default: false })
-withDefaults(defineProps<{ target?: QMenuProps['target']; anchor?: QMenuProps['anchor']; self?: QMenuProps['self']; offset?: [number, number]; maxHeight?: string; width?: string; noPadding?: boolean; autoClose?: boolean }>(), { anchor: 'bottom left', self: 'top left', offset: () => [0, 8] })
+withDefaults(defineProps<{ target?: boolean | string | Element; anchor?: AAnchorOrigin; self?: AAnchorOrigin; offset?: [number, number]; maxHeight?: string; width?: string; noPadding?: boolean; autoClose?: boolean }>(), { anchor: 'bottom left', self: 'top left', offset: () => [0, 8] })
 </script>
 
 <template>

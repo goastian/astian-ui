@@ -46,5 +46,46 @@ watch(model, (value) => { if (value.length === props.codeLength) emit('submit') 
 </template>
 
 <style scoped>
-.a-code-input { margin: 0; padding: 0; border: 0; }.a-code-input legend { margin-bottom: 9px; color: var(--a-text-secondary); font-size: .78rem; font-weight: 600; }.a-code-input__fields { display: flex; gap: 8px; }.a-code-input input { width: 44px; height: 52px; border: 1px solid var(--a-border); border-radius: 10px; background: var(--a-bg-raised); color: var(--a-text-primary); font: 700 1.2rem var(--a-font-mono); text-align: center; transition: border var(--a-motion-fast), box-shadow var(--a-motion-fast); }.a-code-input input:focus { outline: 0; border-color: var(--a-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--a-primary) 15%, transparent); }.a-code-input[aria-invalid="true"] input { border-color: var(--a-negative); }.a-code-input__error { margin: 7px 0 0; color: var(--a-negative); font-size: .76rem; }
+.a-code-input {
+  min-width: var(--a-space-0);
+  margin: var(--a-space-0);
+  padding: var(--a-space-0);
+  border: var(--a-space-0);
+}
+.a-code-input legend {
+  margin-bottom: var(--a-space-2);
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-xs);
+  font-weight: var(--a-font-weight-semibold);
+}
+.a-code-input__fields {
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  gap: var(--a-space-2);
+}
+.a-code-input input {
+  width: var(--a-target-min);
+  height: var(--a-control-lg);
+  border: var(--a-border-width) solid var(--a-border);
+  border-radius: var(--a-radius-sm);
+  background: var(--a-bg-raised);
+  color: var(--a-text-primary);
+  font: var(--a-font-weight-bold) var(--a-font-size-lg) var(--a-font-mono);
+  text-align: center;
+  transition: border var(--a-motion-fast), box-shadow var(--a-motion-fast);
+}
+.a-code-input input:focus {
+  border-color: var(--a-focus-ring);
+  box-shadow: var(--a-shadow-focus);
+  outline: var(--a-space-0);
+}
+.a-code-input[aria-invalid="true"] input {
+  border-color: var(--a-negative);
+}
+.a-code-input__error {
+  margin: var(--a-space-2) var(--a-space-0) var(--a-space-0);
+  color: var(--a-negative);
+  font-size: var(--a-font-size-xs);
+}
 </style>
