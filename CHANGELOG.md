@@ -2,6 +2,35 @@
 
 Relevant changes to Astian UI are documented here following Keep a Changelog and semantic versioning.
 
+## [0.3.0] - 2026-07-23
+
+### Added
+
+- `ARadio` and `ARadioGroup` with typed controlled values, rich options,
+  horizontal/vertical layout, validation, readonly, native semantics and full
+  arrow/Home/End/space keyboard operation.
+- Native `date` and `datetime-local` support in `AInput`, including `min`,
+  `max`, `step`, `name` and `required`, without timezone conversion.
+- Presentational `AStepper` with controlled active step, five states,
+  responsive orientation, intent events and polite announcements. `AWizard`
+  remains intentionally absent until a real composition requires it.
+- Cloud-internal DnD types, `useCloudItemDnd`, consistent intent events and
+  controlled `pending`/`invalid` feedback across cards, items, grids, tables
+  and folder trees.
+- Optional marquee selection in `AFileGrid` and `AMediaGrid`, preserving
+  `selectedIds`, modifier modes, Escape cancellation, bounded autoscroll and
+  keyboard selection.
+- Package verification with gzip budgets and a clean external consumer that
+  exercises the new public contracts.
+
+### Changed
+
+- CSS is published as fontless `base.css`, `core.css` and `cloud.css` entries.
+  `style.css` remains a full compatibility entry without embedded fonts.
+- Material Icons Round moved to opt-in `fonts.css` plus an external WOFF2.
+- Release validation prioritizes package/consumer integration, compression and
+  bundle budgets; browser snapshots remain targeted.
+
 ## [0.2.0] - 2026-07-22
 
 ### Added

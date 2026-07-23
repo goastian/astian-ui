@@ -8,7 +8,13 @@ import {
   AFileTable,
   AStatCard
 } from '@/cloud'
-import type { ACloudItem, ACloudSortOption } from '@/cloud'
+import type {
+  ACloudDragPayload,
+  ACloudDropState,
+  ACloudDropTarget,
+  ACloudItem,
+  ACloudSortOption
+} from '@/cloud'
 import {
   ABreadcrumbs,
   AButton,
@@ -37,6 +43,8 @@ const uploadFiles = ref<File[]>([])
 const uploadUrl = ref('')
 const queue = ref<AUploadQueueItem[]>([])
 const announcement = ref('')
+const dropTarget = ref<ACloudDropTarget | null>(null)
+const dropState = ref<ACloudDropState>('idle')
 
 const breadcrumbs: ABreadcrumbItem[] = [
   { id: 'cloud', label: 'Cloud', to: '/cloud' },
@@ -184,6 +192,28 @@ const showItemMenu = (item: ACloudItem) => {
   focusItem(item)
 }
 
+const updateDropTarget = (target: ACloudDropTarget | null) => {
+  if (dropState.value !== 'pending') dropTarget.value = target
+}
+
+const requestDrop = (payload: ACloudDragPayload) => {
+  if (!payload.target) return
+  dropTarget.value = payload.target
+  dropState.value = 'pending'
+  announcement.value = `Validando ${payload.effect === 'copy' ? 'copia' : 'movimiento'} de ${payload.sourceIds.length} elemento(s)`
+
+  window.setTimeout(() => {
+    dropTarget.value = null
+    dropState.value = 'idle'
+    announcement.value = 'La referencia validó la intención sin modificar la colección'
+  }, 700)
+}
+
+const requestMove = (item: ACloudItem) => {
+  focusItem(item)
+  announcement.value = `Mover a… solicitado para ${item.name}`
+}
+
 const applyContextAction = (action: AContextMenuItem) => {
   const item = items.value.find((candidate) => candidate.id === activeId.value)
   if (!item || !action.label) return
@@ -290,9 +320,17 @@ const enqueue = (payload: { files: readonly File[]; url?: string }) => {
           v-model:active-id="activeId"
           :items="normalizedItems"
           :state="normalizedItems.length ? 'ready' : 'empty'"
+          selection-interaction="marquee"
+          dnd
+          source-container-id="root"
+          :drop-target="dropTarget"
+          :drop-state="dropState"
           @open="openItem"
           @menu="showItemMenu"
           @favorite="(item, favorite) => items = items.map((entry) => entry.id === item.id ? { ...entry, favorite } : entry)"
+          @drop-target-change="updateDropTarget"
+          @drop-request="requestDrop"
+          @move-request="requestMove"
         >
           <template #empty-actions>
             <AButton label="Añadir archivo" icon="add" @click="uploadOpen = true" />
@@ -305,8 +343,15 @@ const enqueue = (payload: { files: readonly File[]; url?: string }) => {
           v-model:sort="tableSort"
           :items="normalizedItems"
           :state="normalizedItems.length ? 'ready' : 'empty'"
+          dnd
+          source-container-id="root"
+          :drop-target="dropTarget"
+          :drop-state="dropState"
           @open="openItem"
           @menu="showItemMenu"
+          @drop-target-change="updateDropTarget"
+          @drop-request="requestDrop"
+          @move-request="requestMove"
         >
           <template #empty>
             <AButton label="Añadir archivo" icon="add" @click="uploadOpen = true" />

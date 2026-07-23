@@ -5,7 +5,16 @@ import AFacepile from '../../components/AFacepile.vue'
 import AIcon from '../../components/AIcon.vue'
 import AIconButton from '../../components/AIconButton.vue'
 import ASkeleton from '../../components/ASkeleton.vue'
-import type { ACloudItem, ACloudVisibility } from '../types'
+import type { AId } from '../../types/core'
+import { cloudDropPosition, useCloudItemDnd } from '../composables/useCloudItemDnd'
+import type {
+  ACloudDragPayload,
+  ACloudDropEffect,
+  ACloudDropState,
+  ACloudDropTarget,
+  ACloudItem,
+  ACloudVisibility
+} from '../types'
 
 const props = withDefaults(defineProps<{
   item: ACloudItem
@@ -15,25 +24,56 @@ const props = withDefaults(defineProps<{
   selectable?: boolean
   showFavorite?: boolean
   showMenu?: boolean
+  draggable?: boolean
+  dragIds?: readonly AId[]
+  sourceContainerId?: AId | null
+  dropTarget?: ACloudDropTarget | null
+  dropState?: ACloudDropState
+  dropEffect?: ACloudDropEffect
+  dragging?: boolean
+  showMoveAction?: boolean
 }>(), {
   loading: false,
   disabled: false,
   selectable: true,
   showFavorite: true,
-  showMenu: true
+  showMenu: true,
+  draggable: false,
+  dragIds: () => [],
+  sourceContainerId: null,
+  dropTarget: null,
+  dropState: 'idle',
+  dropEffect: 'move',
+  dragging: false,
+  showMoveAction: true
 })
 
 const emit = defineEmits<{
   open: [item: ACloudItem]
-  select: [item: ACloudItem, selected: boolean]
+  select: [item: ACloudItem, selected: boolean, event: MouseEvent]
   favorite: [item: ACloudItem, favorite: boolean]
   menu: [item: ACloudItem, event: MouseEvent]
   focus: [item: ACloudItem]
+  'drag-start': [payload: ACloudDragPayload, event: DragEvent]
+  'drag-end': [payload: ACloudDragPayload | null, event: DragEvent]
+  'drop-request': [payload: ACloudDragPayload, event: DragEvent]
+  'drop-target-change': [target: ACloudDropTarget | null, event: DragEvent]
+  'move-request': [item: ACloudItem, event: Event]
 }>()
 
 const thumbnailFailed = ref(false)
+const hoverTarget = ref<ACloudDropTarget | null>(null)
 const isSelected = computed(() => props.selected ?? props.item.selected ?? false)
 const itemDisabled = computed(() => props.disabled || props.item.disabled)
+const dnd = useCloudItemDnd({
+  sourceIds: () => props.dragIds,
+  sourceContainerId: () => props.sourceContainerId,
+  effect: () => props.dropEffect
+})
+const visualDropTarget = computed(() => props.dropTarget ?? hoverTarget.value)
+const dropPosition = computed(() =>
+  visualDropTarget.value?.id === props.item.id ? visualDropTarget.value.position : null
+)
 const visibilityCopy: Record<ACloudVisibility, string> = {
   private: 'Privado',
   shared: 'Compartido',
@@ -54,6 +94,59 @@ const handleMenu = (event: Event) => {
   if (!itemDisabled.value) emit('menu', props.item, event as MouseEvent)
 }
 
+const targetFrom = (event: DragEvent) => {
+  const element = event.currentTarget as HTMLElement
+  const position = cloudDropPosition(event, element, props.item.kind === 'folder')
+  return {
+    id: props.item.id,
+    containerId: position === 'inside' ? props.item.id : props.sourceContainerId,
+    position,
+    kind: 'item'
+  } satisfies ACloudDropTarget
+}
+
+function handleDragStart(event: DragEvent) {
+  if (!props.draggable || itemDisabled.value) {
+    event.preventDefault()
+    return
+  }
+  emit('drag-start', dnd.beginDrag(event, props.item.id), event)
+}
+
+function handleDragEnd(event: DragEvent) {
+  hoverTarget.value = null
+  emit('drag-end', dnd.endDrag(event), event)
+}
+
+function handleDragOver(event: DragEvent) {
+  if (itemDisabled.value) return
+  const target = targetFrom(event)
+  if (!dnd.allowDrop(event, target, props.dropState)) return
+  if (
+    hoverTarget.value?.position !== target.position
+    || hoverTarget.value.id !== target.id
+  ) {
+    hoverTarget.value = target
+    emit('drop-target-change', target, event)
+  }
+}
+
+function handleDragLeave(event: DragEvent) {
+  const current = event.currentTarget as HTMLElement
+  if (event.relatedTarget instanceof Node && current.contains(event.relatedTarget)) return
+  hoverTarget.value = null
+  emit('drop-target-change', null, event)
+}
+
+function handleDrop(event: DragEvent) {
+  if (itemDisabled.value) return
+  const target = targetFrom(event)
+  const payload = dnd.allowDrop(event, target, props.dropState)
+  hoverTarget.value = null
+  emit('drop-target-change', null, event)
+  if (payload) emit('drop-request', payload, event)
+}
+
 watch(() => props.item.kind === 'file' ? props.item.thumbnailUrl : undefined, () => {
   thumbnailFailed.value = false
 })
@@ -65,10 +158,21 @@ watch(() => props.item.kind === 'file' ? props.item.thumbnailUrl : undefined, ()
     :class="{
       'a-file-card--selected': isSelected,
       'a-file-card--disabled': itemDisabled,
-      'a-file-card--loading': loading
+      'a-file-card--loading': loading,
+      'a-file-card--dragging': dragging,
+      'a-file-card--drop-pending': dropState === 'pending' && dropPosition,
+      'a-file-card--drop-invalid': dropState === 'invalid' && dropPosition
     }"
     :aria-busy="loading"
+    :aria-invalid="dropState === 'invalid' && Boolean(dropPosition) || undefined"
+    :data-drop-position="dropPosition || undefined"
+    :draggable="draggable && !itemDisabled"
     @contextmenu="handleMenu"
+    @dragstart="handleDragStart"
+    @dragend="handleDragEnd"
+    @dragover="handleDragOver"
+    @dragleave="handleDragLeave"
+    @drop="handleDrop"
   >
     <template v-if="loading">
       <ASkeleton class="a-file-card__preview" height="100%" />
@@ -85,12 +189,20 @@ watch(() => props.item.kind === 'file' ? props.item.thumbnailUrl : undefined, ()
             :checked="isSelected"
             :disabled="itemDisabled"
             :aria-label="`Seleccionar ${item.name}`"
-            @change="emit('select', item, ($event.target as HTMLInputElement).checked)"
+            @click="emit('select', item, ($event.target as HTMLInputElement).checked, $event)"
           >
           <span aria-hidden="true"><AIcon name="check" /></span>
         </label>
         <span v-else />
         <div class="a-file-card__actions">
+          <AIconButton
+            v-if="draggable && showMoveAction"
+            icon="drive_file_move"
+            :label="`Mover ${item.name}…`"
+            size="small"
+            :disabled="itemDisabled"
+            @click="emit('move-request', item, $event)"
+          />
           <AIconButton
             v-if="showFavorite"
             :icon="item.favorite ? 'star' : 'star_outline'"
@@ -156,6 +268,7 @@ watch(() => props.item.kind === 'file' ? props.item.thumbnailUrl : undefined, ()
 
 <style scoped>
 .a-file-card {
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: var(--a-space-3);
@@ -167,6 +280,29 @@ watch(() => props.item.kind === 'file' ? props.item.thumbnailUrl : undefined, ()
   background: var(--a-bg-surface);
   color: var(--a-text-primary);
   transition: transform var(--a-motion-base), border-color var(--a-motion-base), box-shadow var(--a-motion-base);
+}
+.a-file-card[data-drop-position='before']::before,
+.a-file-card[data-drop-position='after']::after {
+  position: absolute;
+  z-index: var(--a-z-sticky);
+  inset-inline: var(--a-space-2);
+  height: var(--a-border-width-strong);
+  border-radius: var(--a-radius-round);
+  background: var(--a-primary);
+  content: '';
+  pointer-events: none;
+}
+.a-file-card[data-drop-position='before']::before { inset-block-start: calc(var(--a-space-1) * -1); }
+.a-file-card[data-drop-position='after']::after { inset-block-end: calc(var(--a-space-1) * -1); }
+.a-file-card[data-drop-position='inside'] {
+  border-color: var(--a-primary);
+  box-shadow: var(--a-shadow-focus);
+}
+.a-file-card--dragging { opacity: .58; }
+.a-file-card--drop-pending { cursor: progress; }
+.a-file-card--drop-invalid {
+  border-color: var(--a-negative);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--a-negative) 22%, transparent);
 }
 .a-file-card:hover {
   border-color: var(--a-border-strong);

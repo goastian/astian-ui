@@ -45,4 +45,42 @@ export const componentParity: ComponentParityEntry[] = [
 ]
 
 export const originalComponentFamilies = componentParity.map(({ source }) => source)
-export const migratedPublicComponents = [...new Set(componentParity.flatMap(({ targets }) => targets))].sort()
+
+/**
+ * Primitivas y aliases públicos nacidos en Vue. No se añaden a la matriz de
+ * 28 familias React porque no representan una migración uno-a-uno.
+ */
+export const vueNativePublicComponents = [
+  'AAppShell',
+  'ABreadcrumbs',
+  'ACheckbox',
+  'ACheckboxGroup',
+  'ACombobox',
+  'AContextMenu',
+  'ADataTable',
+  'ADrawer',
+  'ADropzone',
+  'AEmptyState',
+  'AErrorState',
+  'AFileUpload',
+  'ALinearProgress',
+  'ANavItem',
+  'ANavigationRail',
+  'APagination',
+  'APopover',
+  'AQuotaMeter',
+  'ARadio',
+  'ARadioGroup',
+  'ASearchAutocomplete',
+  'ASidePanel',
+  'ASidebar',
+  'AStepper',
+  'AUploadQueue'
+]
+
+export const migratedPublicComponents = [
+  ...new Set([
+    ...componentParity.flatMap(({ targets }) => targets),
+    ...vueNativePublicComponents
+  ])
+].sort()

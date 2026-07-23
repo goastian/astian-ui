@@ -11,8 +11,13 @@ import type {
   ATableColumn,
   ATableSort
 } from '../../types/core'
+import { cloudDropPosition, useCloudItemDnd } from '../composables/useCloudItemDnd'
 import type {
   ACloudCollectionState,
+  ACloudDragPayload,
+  ACloudDropEffect,
+  ACloudDropState,
+  ACloudDropTarget,
   ACloudItem,
   ACloudVisibility
 } from '../types'
@@ -31,6 +36,13 @@ type AFileTableProps = ACloudCollectionState & {
   captionVisible?: boolean
   showMenu?: boolean
   retryLabel?: string
+  dnd?: boolean
+  sourceContainerId?: AId | null
+  dropTarget?: ACloudDropTarget | null
+  dropState?: ACloudDropState
+  dropEffect?: ACloudDropEffect
+  draggingIds?: readonly AId[]
+  showMoveAction?: boolean
 }
 
 const selectedIds = defineModel<AId[]>('selectedIds', { default: () => [] })
@@ -52,7 +64,14 @@ const props = withDefaults(defineProps<AFileTableProps>(), {
   emptyDescription: 'Cambia los filtros o añade un elemento.',
   errorTitle: 'No se pudieron cargar los elementos',
   errorDescription: 'Reintenta la carga.',
-  retryLabel: 'Reintentar'
+  retryLabel: 'Reintentar',
+  dnd: false,
+  sourceContainerId: null,
+  dropTarget: null,
+  dropState: 'idle',
+  dropEffect: 'move',
+  draggingIds: () => [],
+  showMoveAction: true
 })
 
 const emit = defineEmits<{
@@ -60,11 +79,27 @@ const emit = defineEmits<{
   menu: [item: ACloudItem, event: MouseEvent]
   action: [item: ACloudItem, actionId: string, event: Event]
   retry: []
+  'drag-start': [payload: ACloudDragPayload, event: DragEvent]
+  'drag-end': [payload: ACloudDragPayload | null, event: DragEvent]
+  'drop-request': [payload: ACloudDragPayload, event: DragEvent]
+  'drop-target-change': [target: ACloudDropTarget | null, event: DragEvent]
+  'move-request': [item: ACloudItem, event: Event]
 }>()
 
 const root = ref<HTMLElement | null>(null)
+const transientDropTarget = ref<ACloudDropTarget | null>(null)
+const transientDraggingIds = ref<AId[]>([])
 const selectionName = `a-file-table-selection-${useId()}`
 const rows = computed(() => props.items as readonly AFileTableRow[])
+const effectiveDropTarget = computed(() => props.dropTarget ?? transientDropTarget.value)
+const effectiveDraggingIds = computed(() =>
+  props.draggingIds.length ? [...props.draggingIds] : transientDraggingIds.value
+)
+const dndApi = useCloudItemDnd({
+  sourceIds: () => effectiveDraggingIds.value,
+  sourceContainerId: () => props.sourceContainerId,
+  effect: () => props.dropEffect
+})
 
 const visibilityCopy: Record<ACloudVisibility, string> = {
   private: 'Privado',
@@ -177,6 +212,81 @@ function isSelected(item: ACloudItem) {
 
 function domId(id: AId) {
   return `${typeof id}:${String(id)}`
+}
+
+function sameId(left: AId | null, right: AId | null) {
+  return left !== null && right !== null && domId(left) === domId(right)
+}
+
+function itemDropState(item: ACloudItem): ACloudDropState {
+  return sameId(effectiveDropTarget.value?.id ?? null, item.id)
+    ? props.dropState === 'idle' ? 'active' : props.dropState
+    : 'idle'
+}
+
+function itemDropPosition(item: ACloudItem) {
+  return sameId(effectiveDropTarget.value?.id ?? null, item.id)
+    ? effectiveDropTarget.value?.position
+    : undefined
+}
+
+function dropTargetFrom(item: ACloudItem, event: DragEvent) {
+  const position = cloudDropPosition(
+    event,
+    event.currentTarget as HTMLElement,
+    item.kind === 'folder'
+  )
+  return {
+    id: item.id,
+    containerId: position === 'inside' ? item.id : props.sourceContainerId,
+    position,
+    kind: 'item'
+  } satisfies ACloudDropTarget
+}
+
+function handleDragStart(item: ACloudItem, event: DragEvent) {
+  if (!props.dnd || props.disabled || item.disabled) {
+    event.preventDefault()
+    return
+  }
+  const ids = selectedIds.value.includes(item.id) ? selectedIds.value : [item.id]
+  transientDraggingIds.value = ids
+  const payload = dndApi.beginDrag(event, item.id)
+  emit('drag-start', payload, event)
+}
+
+function handleDragEnd(event: DragEvent) {
+  transientDraggingIds.value = []
+  transientDropTarget.value = null
+  emit('drag-end', dndApi.endDrag(event), event)
+}
+
+function handleDragOver(item: ACloudItem, event: DragEvent) {
+  if (props.disabled || item.disabled) return
+  const target = dropTargetFrom(item, event)
+  if (!dndApi.allowDrop(event, target, itemDropState(item))) return
+  if (
+    transientDropTarget.value?.position !== target.position
+    || !sameId(transientDropTarget.value?.id ?? null, target.id)
+  ) {
+    transientDropTarget.value = target
+    emit('drop-target-change', target, event)
+  }
+}
+
+function handleDragLeave(event: DragEvent) {
+  const current = event.currentTarget as HTMLElement
+  if (event.relatedTarget instanceof Node && current.contains(event.relatedTarget)) return
+  transientDropTarget.value = null
+  emit('drop-target-change', null, event)
+}
+
+function handleDrop(item: ACloudItem, event: DragEvent) {
+  const target = dropTargetFrom(item, event)
+  const payload = dndApi.allowDrop(event, target, itemDropState(item))
+  transientDropTarget.value = null
+  emit('drop-target-change', null, event)
+  if (payload) emit('drop-request', payload, event)
 }
 
 function setSelected(item: ACloudItem, selected: boolean) {
@@ -348,9 +458,21 @@ defineExpose({ focusActive })
           class="a-file-table__name"
           type="button"
           :data-cloud-id="domId(itemFromRow(row).id)"
+          :data-drop-position="itemDropPosition(itemFromRow(row))"
+          :class="{
+            'a-file-table__name--dragging': effectiveDraggingIds.some((id) => sameId(id, itemFromRow(row).id)),
+            'a-file-table__name--drop-pending': itemDropState(itemFromRow(row)) === 'pending',
+            'a-file-table__name--drop-invalid': itemDropState(itemFromRow(row)) === 'invalid'
+          }"
+          :draggable="dnd && !disabled && !itemFromRow(row).disabled"
           :disabled="disabled || itemFromRow(row).disabled"
           @click="openItem(itemFromRow(row))"
           @focus="activeId = itemFromRow(row).id"
+          @dragstart="handleDragStart(itemFromRow(row), $event)"
+          @dragend="handleDragEnd"
+          @dragover="handleDragOver(itemFromRow(row), $event)"
+          @dragleave="handleDragLeave"
+          @drop="handleDrop(itemFromRow(row), $event)"
         >
           <span class="a-file-table__icon" aria-hidden="true">
             <AIcon :name="resolvedIcon(itemFromRow(row))" />
@@ -412,6 +534,14 @@ defineExpose({ focusActive })
             :disabled="tableDisabled || itemFromRow(row).disabled"
             :open-menu="(event: Event) => openMenu(itemFromRow(row), event)"
           >
+            <AIconButton
+              v-if="dnd && showMoveAction"
+              icon="drive_file_move"
+              :label="`Mover ${itemFromRow(row).name}…`"
+              size="small"
+              :disabled="tableDisabled || itemFromRow(row).disabled"
+              @click="emit('move-request', itemFromRow(row), $event)"
+            />
             <AIconButton
               v-if="showMenu"
               icon="more_horiz"
@@ -489,6 +619,7 @@ defineExpose({ focusActive })
 }
 
 .a-file-table__name {
+  position: relative;
   display: inline-grid;
   grid-template-columns: var(--a-target-min) minmax(0, 1fr);
   align-items: center;
@@ -502,6 +633,29 @@ defineExpose({ focusActive })
   color: var(--a-text-primary);
   text-align: start;
   cursor: pointer;
+}
+.a-file-table__name[data-drop-position='before']::before,
+.a-file-table__name[data-drop-position='after']::after {
+  position: absolute;
+  z-index: var(--a-z-sticky);
+  inset-inline: var(--a-space-0);
+  height: var(--a-border-width-strong);
+  border-radius: var(--a-radius-round);
+  background: var(--a-primary);
+  content: '';
+  pointer-events: none;
+}
+.a-file-table__name[data-drop-position='before']::before { inset-block-start: var(--a-space-0); }
+.a-file-table__name[data-drop-position='after']::after { inset-block-end: var(--a-space-0); }
+.a-file-table__name[data-drop-position='inside'] {
+  border-radius: var(--a-radius-sm);
+  box-shadow: var(--a-shadow-focus);
+}
+.a-file-table__name--dragging { opacity: .58; }
+.a-file-table__name--drop-pending { cursor: progress; }
+.a-file-table__name--drop-invalid {
+  border-radius: var(--a-radius-sm);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--a-negative) 22%, transparent);
 }
 
 .a-file-table__name:focus-visible {

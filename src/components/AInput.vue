@@ -4,7 +4,7 @@ const model = defineModel<string | number | null>({ default: '' })
 withDefaults(defineProps<{
   label?: string
   placeholder?: string
-  type?: 'text' | 'email' | 'number' | 'password' | 'search' | 'url' | 'tel'
+  type?: 'text' | 'email' | 'number' | 'password' | 'search' | 'url' | 'tel' | 'date' | 'datetime-local'
   icon?: string
   endIcon?: string
   hint?: string
@@ -16,6 +16,11 @@ withDefaults(defineProps<{
   clearable?: boolean
   ghost?: boolean
   autocomplete?: string
+  name?: string
+  required?: boolean
+  min?: string | number
+  max?: string | number
+  step?: string | number
 }>(), { type: 'text', size: 'medium' })
 
 defineEmits<{ 'end-click': [] }>()
@@ -36,6 +41,11 @@ defineEmits<{ 'end-click': [] }>()
     :readonly="readonly"
     :clearable="clearable"
     :autocomplete="autocomplete"
+    :name="name"
+    :required="required"
+    :min="min"
+    :max="max"
+    :step="step"
     class="a-input"
     :class="[`a-input--${size}`, { 'a-input--ghost': ghost }]"
   >

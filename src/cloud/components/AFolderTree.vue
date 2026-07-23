@@ -2,7 +2,14 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import type { AId } from '../../types/core'
-import type { AFolderTreeNode } from '../types'
+import { cloudDropPosition, useCloudItemDnd } from '../composables/useCloudItemDnd'
+import type {
+  ACloudDragPayload,
+  ACloudDropEffect,
+  ACloudDropState,
+  ACloudDropTarget,
+  AFolderTreeNode
+} from '../types'
 
 interface VisibleNode {
   node: AFolderTreeNode
@@ -22,11 +29,23 @@ const props = withDefaults(defineProps<{
   emptyLabel?: string
   disabled?: boolean
   selectable?: boolean
+  dnd?: boolean
+  sourceContainerId?: AId | null
+  dropTarget?: ACloudDropTarget | null
+  dropState?: ACloudDropState
+  dropEffect?: ACloudDropEffect
+  draggingIds?: readonly AId[]
 }>(), {
   label: 'Carpetas',
   emptyLabel: 'No hay carpetas disponibles.',
   disabled: false,
-  selectable: true
+  selectable: true,
+  dnd: false,
+  sourceContainerId: null,
+  dropTarget: null,
+  dropState: 'idle',
+  dropEffect: 'move',
+  draggingIds: () => []
 })
 
 const emit = defineEmits<{
@@ -34,9 +53,16 @@ const emit = defineEmits<{
   toggle: [node: AFolderTreeNode, expanded: boolean]
   loadChildren: [node: AFolderTreeNode]
   focus: [node: AFolderTreeNode]
+  'drag-start': [payload: ACloudDragPayload, event: DragEvent]
+  'drag-end': [payload: ACloudDragPayload | null, event: DragEvent]
+  'drop-request': [payload: ACloudDragPayload, event: DragEvent]
+  'drop-target-change': [target: ACloudDropTarget | null, event: DragEvent]
+  'move-request': [node: AFolderTreeNode, event: KeyboardEvent]
 }>()
 
 const tree = ref<HTMLElement | null>(null)
+const transientDropTarget = ref<ACloudDropTarget | null>(null)
+const transientDraggingIds = ref<AId[]>([])
 const initializedIds = new Set<string>()
 let typeahead = ''
 let typeaheadTimer: ReturnType<typeof setTimeout> | undefined
@@ -45,6 +71,85 @@ const nodeKey = (id: AId) => `${typeof id}:${String(id)}`
 const sameId = (left: AId | null, right: AId | null) => {
   if (left === null || right === null) return left === right
   return nodeKey(left) === nodeKey(right)
+}
+const effectiveDropTarget = computed(() => props.dropTarget ?? transientDropTarget.value)
+const effectiveDraggingIds = computed(() =>
+  props.draggingIds.length ? [...props.draggingIds] : transientDraggingIds.value
+)
+const dndApi = useCloudItemDnd({
+  sourceIds: () => effectiveDraggingIds.value,
+  sourceContainerId: () => props.sourceContainerId,
+  effect: () => props.dropEffect
+})
+
+const nodeDropState = (node: AFolderTreeNode): ACloudDropState =>
+  sameId(effectiveDropTarget.value?.id ?? null, node.id)
+    ? props.dropState === 'idle' ? 'active' : props.dropState
+    : 'idle'
+
+const nodeDropPosition = (node: AFolderTreeNode) =>
+  sameId(effectiveDropTarget.value?.id ?? null, node.id)
+    ? effectiveDropTarget.value?.position
+    : undefined
+
+const dropTargetFrom = (
+  node: AFolderTreeNode,
+  parentId: AId | null,
+  event: DragEvent
+) => {
+  const position = cloudDropPosition(event, event.currentTarget as HTMLElement, true)
+  return {
+    id: node.id,
+    containerId: position === 'inside' ? node.id : parentId,
+    position,
+    kind: 'item'
+  } satisfies ACloudDropTarget
+}
+
+const handleDragStart = (node: AFolderTreeNode, event: DragEvent) => {
+  if (!props.dnd || props.disabled || node.disabled) {
+    event.preventDefault()
+    return
+  }
+  const ids = effectiveDraggingIds.value.some((id) => sameId(id, node.id))
+    ? effectiveDraggingIds.value
+    : [node.id]
+  transientDraggingIds.value = ids
+  emit('drag-start', dndApi.beginDrag(event, node.id), event)
+}
+
+const handleDragEnd = (event: DragEvent) => {
+  transientDraggingIds.value = []
+  transientDropTarget.value = null
+  emit('drag-end', dndApi.endDrag(event), event)
+}
+
+const handleDragOver = (node: AFolderTreeNode, parentId: AId | null, event: DragEvent) => {
+  if (props.disabled || node.disabled) return
+  const target = dropTargetFrom(node, parentId, event)
+  if (!dndApi.allowDrop(event, target, nodeDropState(node))) return
+  if (
+    transientDropTarget.value?.position !== target.position
+    || !sameId(transientDropTarget.value?.id ?? null, target.id)
+  ) {
+    transientDropTarget.value = target
+    emit('drop-target-change', target, event)
+  }
+}
+
+const handleDragLeave = (event: DragEvent) => {
+  const current = event.currentTarget as HTMLElement
+  if (event.relatedTarget instanceof Node && current.contains(event.relatedTarget)) return
+  transientDropTarget.value = null
+  emit('drop-target-change', null, event)
+}
+
+const handleDrop = (node: AFolderTreeNode, parentId: AId | null, event: DragEvent) => {
+  const target = dropTargetFrom(node, parentId, event)
+  const payload = dndApi.allowDrop(event, target, nodeDropState(node))
+  transientDropTarget.value = null
+  emit('drop-target-change', null, event)
+  if (payload) emit('drop-request', payload, event)
 }
 
 const isExpanded = (node: AFolderTreeNode) =>
@@ -197,6 +302,12 @@ const handleKeydown = (event: KeyboardEvent, entry: VisibleNode) => {
   const currentIndex = visibleNodes.value.findIndex(({ node }) => sameId(node.id, entry.node.id))
   if (currentIndex < 0) return
 
+  if (event.altKey && event.key.toLocaleLowerCase() === 'm') {
+    event.preventDefault()
+    if (!props.disabled && !entry.node.disabled) emit('move-request', entry.node, event)
+    return
+  }
+
   if (handleTypeahead(event, currentIndex)) {
     event.preventDefault()
     return
@@ -318,7 +429,10 @@ onBeforeUnmount(() => {
       :class="{
         'a-folder-tree__item--selected': sameId(entry.node.id, selectedId),
         'a-folder-tree__item--disabled': entry.node.disabled,
-        'a-folder-tree__item--loading': entry.node.loading
+        'a-folder-tree__item--loading': entry.node.loading,
+        'a-folder-tree__item--dragging': effectiveDraggingIds.some((id) => sameId(id, entry.node.id)),
+        'a-folder-tree__item--drop-pending': nodeDropState(entry.node) === 'pending',
+        'a-folder-tree__item--drop-invalid': nodeDropState(entry.node) === 'invalid'
       }"
       role="treeitem"
       :data-tree-level="visualLevel(entry.level)"
@@ -329,10 +443,19 @@ onBeforeUnmount(() => {
       :aria-selected="selectable ? sameId(entry.node.id, selectedId) : undefined"
       :aria-disabled="disabled || entry.node.disabled || undefined"
       :aria-busy="entry.node.loading || undefined"
+      :aria-invalid="nodeDropState(entry.node) === 'invalid' || undefined"
+      aria-keyshortcuts="Alt+M"
+      :data-drop-position="nodeDropPosition(entry.node)"
+      :draggable="dnd && !disabled && !entry.node.disabled"
       :tabindex="sameId(entry.node.id, activeId) ? 0 : -1"
       @click="handleRowClick(entry.node)"
       @focus="activeId = entry.node.id"
       @keydown="handleKeydown($event, entry)"
+      @dragstart="handleDragStart(entry.node, $event)"
+      @dragend="handleDragEnd"
+      @dragover="handleDragOver(entry.node, entry.parentId, $event)"
+      @dragleave="handleDragLeave"
+      @drop="handleDrop(entry.node, entry.parentId, $event)"
     >
       <button
         v-if="isBranch(entry.node)"
@@ -387,6 +510,7 @@ onBeforeUnmount(() => {
 }
 
 .a-folder-tree__item {
+  position: relative;
   display: grid;
   grid-template-columns: var(--a-target-min) var(--a-icon-md) minmax(0, 1fr) auto;
   align-items: center;
@@ -398,6 +522,27 @@ onBeforeUnmount(() => {
   transition:
     background var(--a-motion-fast),
     color var(--a-motion-fast);
+}
+.a-folder-tree__item[data-drop-position='before']::before,
+.a-folder-tree__item[data-drop-position='after']::after {
+  position: absolute;
+  z-index: var(--a-z-sticky);
+  inset-inline: var(--a-space-2);
+  height: var(--a-border-width-strong);
+  border-radius: var(--a-radius-round);
+  background: var(--a-primary);
+  content: '';
+  pointer-events: none;
+}
+.a-folder-tree__item[data-drop-position='before']::before { inset-block-start: calc(var(--a-space-1) * -1); }
+.a-folder-tree__item[data-drop-position='after']::after { inset-block-end: calc(var(--a-space-1) * -1); }
+.a-folder-tree__item[data-drop-position='inside'] {
+  box-shadow: var(--a-shadow-focus);
+}
+.a-folder-tree__item--dragging { opacity: .58; }
+.a-folder-tree__item--drop-pending { cursor: progress; }
+.a-folder-tree__item--drop-invalid {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--a-negative) 22%, transparent);
 }
 
 .a-folder-tree__item[data-tree-level='1'] {

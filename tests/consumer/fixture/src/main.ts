@@ -1,5 +1,7 @@
 import 'quasar/src/css/index.sass'
-import '@goastian/astian-ui/style.css'
+import '@goastian/astian-ui/base.css'
+import '@goastian/astian-ui/core.css'
+import '@goastian/astian-ui/cloud.css'
 
 import { AstianUI } from '@goastian/astian-ui'
 import { Quasar } from 'quasar'

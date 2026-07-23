@@ -56,3 +56,61 @@ test('overlay demo opens its dropdown and keeps it available for interaction', a
   await expect(page.locator('.q-menu.a-dropdown')).toBeHidden()
   await expect(page.getByText('Cambios guardados', { exact: true })).toBeVisible()
 })
+
+test('priority form and stepper contracts work together with native keyboard behavior', async ({ page }) => {
+  await page.goto('/ui')
+
+  const visibility = page.getByRole('group', { name: 'Visibilidad' })
+  const team = visibility.getByRole('radio', { name: /Equipo/ })
+  const link = visibility.getByRole('radio', { name: /Con enlace/ })
+  await expect(team).toBeChecked()
+  await team.focus()
+  await team.press('ArrowRight')
+  await expect(link).toBeChecked()
+
+  await expect(page.locator('input[type="date"]')).toHaveAttribute('min', '2026-08-01')
+  await expect(page.locator('input[type="datetime-local"]')).toHaveValue('2026-08-04T09:30')
+
+  const progress = page.getByRole('navigation', { name: 'Progreso' })
+  await expect(progress.getByRole('button', { name: /Detalles/ })).toHaveAttribute('aria-current', 'step')
+  await page.getByRole('button', { name: 'Continuar' }).click()
+  await expect(progress.getByRole('button', { name: /Acceso/ })).toHaveAttribute('aria-current', 'step')
+})
+
+test('cloud selection keeps one controlled model and exposes a keyboard move action', async ({ page }) => {
+  await page.goto('/cloud')
+
+  const grid = page.locator('.a-file-grid')
+  const firstSelection = grid.getByRole('checkbox', { name: /Seleccionar/ }).first()
+  await firstSelection.focus()
+  await firstSelection.press(process.platform === 'darwin' ? 'Meta+a' : 'Control+a')
+  const selection = grid.getByRole('checkbox', { name: /Seleccionar/ })
+  await expect.poll(async () => selection.evaluateAll((inputs) => (
+    inputs.every((input) => (input as HTMLInputElement).checked)
+  ))).toBe(true)
+  await expect(grid.getByRole('button', { name: /Mover .*…/ }).first()).toBeVisible()
+})
+
+test('desktop cloud marquee and internal drop emit controlled outcomes', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('desktop'))
+  await page.goto('/cloud')
+
+  const cards = page.locator('.a-file-grid .a-file-card')
+  const firstBox = await cards.nth(0).boundingBox()
+  const secondBox = await cards.nth(1).boundingBox()
+  expect(firstBox).not.toBeNull()
+  expect(secondBox).not.toBeNull()
+  if (!firstBox || !secondBox) return
+
+  const startX = firstBox.x + firstBox.width + Math.max(1, (secondBox.x - firstBox.x - firstBox.width) / 2)
+  const startY = firstBox.y + firstBox.height / 2
+  await page.mouse.move(startX, startY)
+  await page.mouse.down()
+  await page.mouse.move(secondBox.x + secondBox.width * .75, secondBox.y + secondBox.height * .75, { steps: 8 })
+  await page.mouse.up()
+
+  await expect.poll(async () => page.locator('.a-file-grid input[type="checkbox"]:checked').count()).toBeGreaterThan(0)
+
+  await cards.nth(0).dragTo(cards.nth(1))
+  await expect(page.getByText('La referencia validó la intención sin modificar la colección')).toBeVisible()
+})

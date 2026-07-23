@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   open: [media: ACloudMedia]
-  select: [media: ACloudMedia, selected: boolean]
+  select: [media: ACloudMedia, selected: boolean, event: MouseEvent]
   menu: [media: ACloudMedia, event: MouseEvent]
   focus: [media: ACloudMedia]
 }>()
@@ -73,7 +73,7 @@ watch(() => props.media.thumbnailUrl, () => {
           :checked="isSelected"
           :disabled="isDisabled"
           :aria-label="`Seleccionar ${media.name}`"
-          @change="emit('select', media, ($event.target as HTMLInputElement).checked)"
+          @click="emit('select', media, ($event.target as HTMLInputElement).checked, $event)"
         >
         <span aria-hidden="true"><AIcon name="check" /></span>
       </label>

@@ -1,0 +1,24 @@
+@font-face {
+  font-family: 'Material Icons Round';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('./fonts/material-icons-round.woff2') format('woff2');
+}
+
+.material-icons-round {
+  display: inline-block;
+  direction: ltr;
+  font-family: 'Material Icons Round';
+  font-feature-settings: 'liga';
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1;
+  text-rendering: optimizeLegibility;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

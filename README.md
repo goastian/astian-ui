@@ -48,13 +48,17 @@ Rutas de referencia:
 | --- | --- |
 | `@goastian/astian-ui` | Primitivas y patrones reutilizables del núcleo P0, tipos, composables y plugin `AstianUI`. |
 | `@goastian/astian-ui/cloud` | Patrones P1 y tipos propios de Astian Cloud. No se registran globalmente con `AstianUI`. |
-| `@goastian/astian-ui/style.css` | Estilos del paquete y consumo de tokens. |
+| `@goastian/astian-ui/base.css` | Tokens y estilos globales mínimos. No incluye componentes ni fuentes. |
+| `@goastian/astian-ui/core.css` | Estilos de las primitivas del núcleo. |
+| `@goastian/astian-ui/cloud.css` | Estilos exclusivos de los patrones Cloud; se usa junto con `base.css` y `core.css`. |
+| `@goastian/astian-ui/fonts.css` | Material Icons Round y su WOFF2 externo. Es opt-in. |
+| `@goastian/astian-ui/style.css` | Entrada de compatibilidad fontless con base, núcleo y Cloud. Para código nuevo se prefieren las entradas segmentadas. |
 | `@goastian/astian-ui/tokens.css` | Tokens `--a-*` sin el resto de estilos del paquete. |
 | `@goastian/astian-ui/icons/*` | Recursos legacy que el consumidor todavía necesite copiar a su directorio público. |
 
 La entrada `./cloud` permite que un producto que solo necesita el núcleo no
-incorpore patrones de almacenamiento. Ambas entradas usan exports nombrados y
-son compatibles con tree shaking.
+incorpore JavaScript ni CSS de almacenamiento. Todas las entradas de estilo son
+fontless salvo `fonts.css`; no contienen WOFF en base64.
 
 ## Configuración del consumidor
 
@@ -67,7 +71,8 @@ import { Quasar } from 'quasar'
 import 'quasar/src/css/index.sass'
 
 import { AstianUI } from '@goastian/astian-ui'
-import '@goastian/astian-ui/style.css'
+import '@goastian/astian-ui/base.css'
+import '@goastian/astian-ui/core.css'
 
 import App from './App.vue'
 
@@ -77,6 +82,22 @@ app.use(Quasar)
 app.use(AstianUI)
 app.mount('#app')
 ```
+
+Un producto que usa Cloud añade:
+
+```ts
+import '@goastian/astian-ui/cloud.css'
+```
+
+Material Icons Round ya no se descarga por defecto. Si la aplicación conserva
+el icon set basado en ligaduras, debe optar por la fuente:
+
+```ts
+import '@goastian/astian-ui/fonts.css'
+```
+
+`fonts.css` usa `font-display: block` para que las ligaduras no aparezcan como
+texto durante la carga. Una aplicación con iconos SVG puede omitirlo.
 
 También se pueden importar componentes concretos sin depender del registro
 global:
@@ -122,6 +143,9 @@ duplicadas.
 | `ANavigationRail`, `ANavItem`, `ABreadcrumbs` | Navegación por `to` o `href`, nunca ambos. El rail controla `v-model:collapsed` y `v-model:mobile-open`; emite `select`. Los elementos emiten `activate`/`navigate` sin ejecutar lógica de negocio. |
 | `ADrawer`, `APopover`, `AContextMenu` | Overlays controlados con `v-model`; emiten apertura, cierre o selección. `ADrawer` puede ser modal o no modal y reporta el motivo de cierre. |
 | `ACheckbox`, `ACheckboxGroup` | `v-model` booleano o colección tipada; soportan indeterminado, hint, error y disabled. |
+| `ARadio`, `ARadioGroup` | Selección excluyente por `v-model` tipado; opciones con descripción, orientación, `readonly`, validación y navegación por flechas, `Home`, `End` y espacio. |
+| `AInput` fecha | `type="date"` y `type="datetime-local"` conservan el string local sin conversión de zona y aceptan `min`, `max`, `step`, `name` y `required`. |
+| `AStepper` | Colección de pasos y `v-model:activeStep`; emite `next`, `back`, `cancel`, `complete` y `step-request`. La aplicación valida y navega. No se publica `AWizard` hasta validar una composición adicional real. |
 | `ALinearProgress`, `AQuotaMeter` | Progreso determinado o indeterminado, rango y estado semántico. La cuota recibe `used`/`limit` y permite formateo externo. |
 | `AEmptyState`, `AErrorState` | Presentación de estados sin copy de producto obligatorio. `AErrorState` emite `retry`; ambos exponen slots para acciones controladas por el consumidor. |
 | `ACombobox` | Selección por `v-model`, opciones locales o loader asíncrono cancelable con `AbortSignal`; emite `select` y `clear`. |
@@ -137,10 +161,10 @@ Estos patrones se importan exclusivamente desde `@goastian/astian-ui/cloud`.
 | Familia | Responsabilidad y contrato controlado |
 | --- | --- |
 | `ACloudPageHeader`, `ACloudToolbar` | Título, contexto y composición de búsqueda, creación, filtros, orden y vista. La toolbar controla `v-model:search`, `v-model:view` y `v-model:sort`; emite intenciones de crear, filtrar o buscar. |
-| `AFileItem`, `AFileCard`, `AFolderItem` | Presentan archivo/carpeta, selección, favorito, privacidad, actividad, colaboradores y menú. Emiten `open`, `select`, `favorite`, `menu` y `focus` según la variante. |
-| `AFileGrid`, `AFileTable` | Vistas grid/list controladas mediante `selectedIds`, `activeId` y, en tabla, `sort`. Conservan selección/foco y exponen `loading`/`empty`/`error`, acciones y reintento. |
-| `AFolderTree`, `AFolderPicker` | Jerarquía controlada con `selectedId`, `expandedIds` y `activeId`. Emiten `loadChildren` para que el consumidor haga la carga perezosa, además de `select`, `toggle`, `confirm`, `cancel` y `retry` según la variante. |
-| `AMediaGrid`, `APhotoTile` | Galería responsive y selección múltiple controlada; emite apertura, selección, menú y reintento. |
+| `AFileItem`, `AFileCard`, `AFolderItem` | Presentan archivo/carpeta y aceptan el mismo contrato DnD controlado. La acción visible “Mover…” ofrece alternativa operable por teclado. |
+| `AFileGrid`, `AFileTable` | Vistas grid/list controladas mediante `selectedIds`, `activeId` y, en tabla, `sort`. El grid puede activar `selectionInteraction="marquee"` sin crear otro modelo de selección. |
+| `AFolderTree`, `AFolderPicker` | Jerarquía controlada y destino DnD. `Alt+M` emite `move-request`; el consumidor puede abrir `AFolderPicker` como alternativa al puntero. |
+| `AMediaGrid`, `APhotoTile` | Galería responsive y selección múltiple controlada; `AMediaGrid` comparte el contrato marquee del grid de archivos. |
 | `AMediaViewer`, `AFilePreview` | Imagen, PDF, audio, video o fallback. Controlan apertura/zoom y emiten navegación, descarga, carga, error o reintento. La URL y sus permisos pertenecen al consumidor. |
 | `AFileDetailsPanel` | Panel controlado mediante `v-model` y `v-model:active-section`. Monta progresivamente slots `details`, `tags`, `permissions`, `comments`, `versions` y `activity`; emite `sectionChange`, `retry` y `close`. |
 | `ANotificationCenter` | Recibe notificaciones y estado de conexión; emite lectura, acción, reintento y carga adicional. No abre sockets ni hace polling. |
@@ -150,6 +174,24 @@ Estos patrones se importan exclusivamente desde `@goastian/astian-ui/cloud`.
 Los tipos `ACloudItem`, `ACloudFile`, `ACloudFolder`, `AFolderTreeNode`,
 `ACloudMedia`, `AFilePreviewSource`, `ACloudNotification` y `ACloudMetric`
 también salen de `./cloud`.
+
+### Drag and drop interno
+
+`ACloudDragPayload`, `ACloudDropTarget`, `ACloudDropPosition`,
+`ACloudDropEffect` y `ACloudDropState` forman el contrato público. Los
+componentes emiten `drag-start`, `drag-end`, `drop-target-change` y
+`drop-request`; nunca cambian la colección por su cuenta. El consumidor valida
+permisos, cifrado, conflictos y API y mantiene `dropState="pending"` hasta la
+confirmación. `invalid` comunica rechazo sin simular una operación completada.
+
+### Selección marquee
+
+`AFileGrid` y `AMediaGrid` aceptan `selectionInteraction="marquee"`. El
+resultado sigue en `v-model:selectedIds`; `selection-start`,
+`selection-change` y `selection-end` sirven para telemetría o barras de acción.
+Shift añade, Ctrl/Cmd alterna, Escape cancela y Ctrl/Cmd+A selecciona los
+elementos habilitados. La interacción ignora controles internos y punteros
+táctiles.
 
 ## Contratos controlados y eventos
 
@@ -237,6 +279,10 @@ conservar labels, estados y orden de foco.
   espacio, `*` y búsqueda por escritura conservan el patrón ARIA tree.
 - Comboboxes y menús usan navegación por flechas, `Home`/`End`,
   `Enter`/espacio y `Escape` según el patrón correspondiente.
+- Los grupos de radio recorren sólo opciones habilitadas con flechas,
+  `Home`/`End` y seleccionan con espacio.
+- Los steppers anuncian el paso activo en una live region; una solicitud de
+  cambio no mueve el foco ni modifica la navegación del producto.
 - `AContextMenu` se puede abrir con click derecho, `Shift+F10` o la tecla de
   menú contextual y devuelve el foco al disparador.
 - Drawers y visores modales contienen el foco; los no modales no lo atrapan.
@@ -251,11 +297,18 @@ contraste WCAG 2.1 AA y navegación completa sin mouse dentro del producto real.
 ```bash
 npm run check         # contratos TypeScript/Vue
 npm test              # pruebas unitarias y funcionales
-npm run test:e2e      # rutas, temas y viewports
 npm run build         # aplicación y biblioteca
+npm run test:package  # exports, fontless y presupuestos gzip
 npm run test:consumer # consumo desde una aplicación aislada
+npm run test:e2e      # comprobación visual dirigida de rutas/temas/viewports
 npm pack --dry-run    # contenido exacto del tarball
 ```
+
+La puerta principal del paquete es la integración: build ESM/CJS, declaraciones
+sin fugas de Quasar, tarball instalable, app consumidora y presupuestos de
+compresión. Las pruebas de componente cubren contratos críticos; Playwright se
+reserva para cambios visuales o de interacción que realmente necesiten un
+navegador.
 
 El proyecto usa SemVer. Mientras la API está en `0.x`, una incompatibilidad
 incrementa la versión minor; una adición compatible también corresponde a una

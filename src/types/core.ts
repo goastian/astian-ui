@@ -55,6 +55,24 @@ export interface ACheckboxOption<T extends AId = AId> {
   disabled?: boolean
 }
 
+export interface ARadioOption<T extends AId = AId> {
+  label: string
+  description?: string
+  value: T
+  disabled?: boolean
+}
+
+export type AStepState = 'pending' | 'active' | 'complete' | 'error' | 'disabled'
+
+export interface AStepSpec<T extends AId = AId> {
+  id: T
+  title: string
+  description?: string
+  error?: string
+  state?: AStepState
+  disabled?: boolean
+}
+
 export interface AProgressProps {
   value?: number
   min?: number

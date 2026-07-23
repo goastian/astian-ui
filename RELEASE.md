@@ -12,13 +12,17 @@
 
 ```bash
 npm ci
+npm run check
 npm test
-npm run test:e2e
 npm run build
+npm run test:package
+npm run test:consumer
 npm pack --dry-run
 ```
 
-The tarball is then tested in a clean Vue/Quasar application. Only then:
+Run the targeted Playwright routes when a change affects rendered interaction,
+theme, or responsive layout. The clean Vue/Quasar consumer and compressed
+bundle budgets are mandatory for every package release. Only then:
 
 ```bash
 npm version prerelease --preid beta # while the adoption is pilot

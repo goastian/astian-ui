@@ -5,6 +5,52 @@ export type ACloudViewMode = 'grid' | 'list'
 
 export type ACloudVisibility = 'private' | 'shared' | 'link'
 
+export type ACloudDropPosition = 'before' | 'inside' | 'after'
+
+export type ACloudDropEffect = 'move' | 'copy'
+
+export type ACloudDropState = 'idle' | 'active' | 'pending' | 'invalid'
+
+export interface ACloudDragModifiers {
+  altKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  shiftKey: boolean
+}
+
+export interface ACloudDropTarget {
+  id: AId
+  containerId: AId | null
+  position: ACloudDropPosition
+  kind: 'item' | 'container'
+}
+
+export interface ACloudDragPayload {
+  sourceIds: AId[]
+  sourceContainerId: AId | null
+  target?: ACloudDropTarget
+  effect: ACloudDropEffect
+  modifiers: ACloudDragModifiers
+}
+
+export type ACloudSelectionInteraction = 'individual' | 'marquee'
+
+export type ACloudSelectionMode = 'replace' | 'add' | 'toggle'
+
+export interface ACloudSelectionRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export interface ACloudSelectionDetail {
+  selectedIds: AId[]
+  mode: ACloudSelectionMode
+  rect: ACloudSelectionRect
+  cancelled?: boolean
+}
+
 export interface ACloudSortOption {
   id: string
   label: string

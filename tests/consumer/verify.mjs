@@ -11,6 +11,7 @@ import {
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { gzipSync } from 'node:zlib'
 
 const testDir = dirname(fileURLToPath(import.meta.url))
 const projectDir = join(testDir, '..', '..')
@@ -51,6 +52,11 @@ const collectFiles = (directory, predicate) => readdirSync(directory).flatMap((e
 const rootExport = installedManifest.exports?.['.']
 const cloudExport = installedManifest.exports?.['./cloud']
 const styleExport = installedManifest.exports?.['./style.css']
+const baseStyleExport = installedManifest.exports?.['./base.css']
+const coreStyleExport = installedManifest.exports?.['./core.css']
+const cloudStyleExport = installedManifest.exports?.['./cloud.css']
+const fontsStyleExport = installedManifest.exports?.['./fonts.css']
+const tokensStyleExport = installedManifest.exports?.['./tokens.css']
 
 const publishedTargets = [
   ['root ESM', rootExport?.import],
@@ -59,7 +65,12 @@ const publishedTargets = [
   ['cloud ESM', cloudExport?.import],
   ['cloud CommonJS', cloudExport?.require],
   ['cloud types', cloudExport?.types],
-  ['shared CSS', styleExport]
+  ['compatibility CSS', styleExport],
+  ['base CSS', baseStyleExport],
+  ['core CSS', coreStyleExport],
+  ['cloud CSS', cloudStyleExport],
+  ['optional fonts CSS', fontsStyleExport],
+  ['tokens CSS', tokensStyleExport]
 ]
 
 for (const [label, target] of publishedTargets) {
@@ -70,6 +81,13 @@ for (const [label, target] of publishedTargets) {
   const targetPath = resolve(installedPackageDir, target)
   if (!existsSync(targetPath) || !statSync(targetPath).isFile() || statSync(targetPath).size === 0) {
     throw new Error(`El tarball no contiene ${label}: ${target}`)
+  }
+}
+
+for (const target of [styleExport, baseStyleExport, coreStyleExport, cloudStyleExport]) {
+  const css = readFileSync(resolve(installedPackageDir, target), 'utf8')
+  if (/@font-face|data:font|base64/i.test(css)) {
+    throw new Error(`${target} no es fontless`)
   }
 }
 
@@ -93,3 +111,43 @@ if (declarationLeaks.length) {
 }
 
 execFileSync('npm', ['run', 'build'], { cwd: appDir, stdio: 'inherit' })
+
+const consumerAssets = collectFiles(
+  join(appDir, 'dist', 'assets'),
+  (path) => path.endsWith('.css') || path.endsWith('.js')
+)
+const consumerBundle = consumerAssets.reduce(
+  (result, path) => {
+    const kind = path.endsWith('.css') ? 'css' : 'js'
+    const content = readFileSync(path)
+    result[kind].raw += content.byteLength
+    result[kind].gzip += gzipSync(content, { level: 9 }).byteLength
+    return result
+  },
+  { css: { raw: 0, gzip: 0 }, js: { raw: 0, gzip: 0 } }
+)
+
+const consumerBudgets = { css: 60_000, js: 125_000 }
+for (const kind of ['css', 'js']) {
+  if (consumerBundle[kind].gzip > consumerBudgets[kind]) {
+    throw new Error(
+      `El bundle consumidor ${kind.toUpperCase()} supera el presupuesto gzip: `
+      + `${consumerBundle[kind].gzip} > ${consumerBudgets[kind]}`
+    )
+  }
+}
+
+console.table([
+  {
+    asset: 'consumer.css',
+    raw: consumerBundle.css.raw,
+    gzip: consumerBundle.css.gzip,
+    budget: consumerBudgets.css
+  },
+  {
+    asset: 'consumer.js',
+    raw: consumerBundle.js.raw,
+    gzip: consumerBundle.js.gzip,
+    budget: consumerBudgets.js
+  }
+])
