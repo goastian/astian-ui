@@ -12,7 +12,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@astian/astian-ui': fileURLToPath(new URL('./src/index.ts', import.meta.url))
+      '@goastian/astian-ui/cloud': fileURLToPath(new URL('./src/cloud/index.ts', import.meta.url)),
+      '@goastian/astian-ui': fileURLToPath(new URL('./src/index.ts', import.meta.url))
     }
   },
   build: {

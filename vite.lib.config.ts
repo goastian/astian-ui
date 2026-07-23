@@ -14,18 +14,29 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist-lib',
+    cssCodeSplit: false,
     lib: {
-      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+      entry: {
+        index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+        cloud: fileURLToPath(new URL('./src/cloud/index.ts', import.meta.url))
+      },
       name: 'AstianUI',
-      formats: ['es', 'umd'],
-      fileName: (format) => format === 'es' ? 'astian-ui.js' : 'astian-ui.umd.cjs',
+      formats: ['es', 'cjs'],
+      fileName: (format, entryName) => {
+        const baseName = entryName === 'index' ? 'astian-ui' : entryName
+        return `${baseName}.${format === 'es' ? 'js' : 'cjs'}`
+      },
       cssFileName: 'astian-ui'
     },
     rollupOptions: {
-      external: ['vue', 'quasar'],
+      external: (id) => (
+        id === 'vue' ||
+        id.startsWith('vue/') ||
+        id === 'quasar' ||
+        id.startsWith('quasar/')
+      ),
       output: {
         exports: 'named',
-        globals: { vue: 'Vue', quasar: 'Quasar' }
       }
     },
     sourcemap: true

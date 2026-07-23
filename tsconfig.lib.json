@@ -9,6 +9,8 @@
   },
   "include": [
     "src/index.ts",
+    "src/cloud/**/*.ts",
+    "src/cloud/**/*.vue",
     "src/components/**/*.vue",
     "src/composables/**/*.ts",
     "src/migration/**/*.ts",

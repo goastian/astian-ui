@@ -14,7 +14,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@astian/astian-ui": ["src/index.ts"]
+      "@goastian/astian-ui": ["src/index.ts"],
+      "@goastian/astian-ui/cloud": ["src/cloud/index.ts"]
     },
     "skipLibCheck": true,
     "noEmit": true

@@ -18,7 +18,7 @@
     "prepack": "npm run build",
     "preview": "vite preview"
   },
-  "main": "./dist-lib/astian-ui.umd.cjs",
+  "main": "./dist-lib/astian-ui.cjs",
   "module": "./dist-lib/astian-ui.js",
   "types": "./dist-lib/types/index.d.ts",
   "style": "./dist-lib/astian-ui.css",
@@ -26,7 +26,12 @@
     ".": {
       "types": "./dist-lib/types/index.d.ts",
       "import": "./dist-lib/astian-ui.js",
-      "require": "./dist-lib/astian-ui.umd.cjs"
+      "require": "./dist-lib/astian-ui.cjs"
+    },
+    "./cloud": {
+      "types": "./dist-lib/types/cloud/index.d.ts",
+      "import": "./dist-lib/cloud.js",
+      "require": "./dist-lib/cloud.cjs"
     },
     "./style.css": "./dist-lib/astian-ui.css",
     "./tokens.css": "./src/css/tokens.css",
@@ -50,9 +55,6 @@
   "peerDependencies": {
     "quasar": "^2.16.0",
     "vue": "^3.5.0"
-  },
-  "peerDependenciesMeta": {
-    "quasar": { "optional": true }
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
