@@ -4,7 +4,7 @@ Adoption is done in reversible cuts. The entire design is not copied at once.
 
 ## Common Sequence
 
-1. Install `@astian/astian-ui` and Quasar on a pilot branch.
+1. Install `@goastian/astian-ui` and Quasar on a pilot branch.
 
 2. Map existing colors, spacing, typography, and elevation to `--a-*` tokens.
 
