@@ -9,6 +9,7 @@
   },
   "include": [
     "src/index.ts",
+    "src/entries/**/*.ts",
     "src/cloud/**/*.ts",
     "src/cloud/**/*.vue",
     "src/components/**/*.vue",
@@ -18,5 +19,12 @@
     "src/utils/**/*.ts",
     "src/env.d.ts"
   ],
-  "exclude": ["src/pages", "src/layouts", "src/router", "src/main.ts", "src/App.vue"]
+  "exclude": [
+    "src/entries/root.ts",
+    "src/pages",
+    "src/layouts",
+    "src/router",
+    "src/main.ts",
+    "src/App.vue"
+  ]
 }

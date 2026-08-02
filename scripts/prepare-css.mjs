@@ -18,6 +18,14 @@ const joinCss = (...parts) => `${parts.filter(Boolean).join('\n')}\n`
 const splitCssFiles = readdirSync(outputDir)
   .filter((file) => file.endsWith('.css'))
 
+const canonicalCssFiles = [
+  'style.css',
+  'index.css',
+  'cloud.css',
+  'forms.css',
+  'marketing.css'
+]
+
 for (const required of ['style.css', 'index.css', 'cloud.css']) {
   if (!splitCssFiles.includes(required)) {
     throw new Error(`No se generó el segmento CSS requerido: ${required}`)
@@ -25,7 +33,7 @@ for (const required of ['style.css', 'index.css', 'cloud.css']) {
 }
 
 const sharedFiles = splitCssFiles
-  .filter((file) => !['style.css', 'index.css', 'cloud.css'].includes(file))
+  .filter((file) => !canonicalCssFiles.includes(file))
   .sort()
 
 const baseCss = readOutput('style.css')
@@ -39,6 +47,8 @@ writeFileSync(join(outputDir, 'cloud.css'), cloudCss)
 writeFileSync(join(outputDir, 'astian-ui.css'), joinCss(baseCss, coreCss, cloudCss))
 copyFileSync(join(sourceCssDir, 'tokens.css'), join(outputDir, 'tokens.css'))
 copyFileSync(join(sourceCssDir, 'fonts.css'), join(outputDir, 'fonts.css'))
+copyFileSync(join(sourceCssDir, 'forms.css'), join(outputDir, 'forms.css'))
+copyFileSync(join(sourceCssDir, 'marketing.css'), join(outputDir, 'marketing.css'))
 
 const fontDir = join(outputDir, 'fonts')
 mkdirSync(fontDir, { recursive: true })

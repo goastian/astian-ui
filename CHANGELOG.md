@@ -2,6 +2,56 @@
 
 Relevant changes to Astian UI are documented here following Keep a Changelog and semantic versioning.
 
+## [0.4.0] - 2026-08-01
+
+### Added
+
+- SSR-safe ESM/CommonJS subpaths for `input`, `textarea`, `checkbox`, `button`,
+  `marketing-navigation`, `locale-switch` and `marketing-action`, each with
+  TypeScript declarations and both default and named exports.
+- `forms.css` and `marketing.css` as fontless, reset-free bundles designed to
+  run with `tokens.css` on public pages.
+- `AMarketingNavigation` with intentional hover, click, keyboard navigation,
+  two-column desktop panel, mobile drawer, focus containment/restoration,
+  outside click, `Escape` and Inertia-compatible `href` rendering.
+- `ALocaleSwitch` with server-provided URLs, real `hreflang` links,
+  `aria-current`, inline and compact disclosure modes.
+- `AMarketingAction` with primary/secondary variants, safe external links and
+  injectable link renderer without Vue Router.
+- Clean-consumer checks for Node `renderToString`, ESM/CommonJS evaluation and
+  Vite bundle deltas against an empty Vue baseline.
+- Browser coverage at 320, 375, 414 and 768 px for reflow, 44 px targets,
+  focus, reduced motion and the desktop/mobile boundary.
+
+### Changed
+
+- `AInput`, `ATextarea` and `AButton` now use semantic native controls instead
+  of Quasar internals. `ACheckbox` shares the same isolated CSS path. Clearing
+  an `AInput` still emits `null`, and `AButton to` still uses `RouterLink` when
+  the consumer has registered it, with a native-anchor fallback otherwise.
+- Quasar is an optional peer for modular native entries. Conventional root and
+  Cloud consumers still install and configure Quasar once.
+- `@quasar/extras` is development-only; the optional Material Icons font stays
+  copied into the published tarball for conventional consumers.
+- The library build no longer rewrites components to private `quasar/src/*`
+  imports. Public Node conditions remain intact.
+
+### Fixed
+
+- Importing the main entry or a new subpath during Node SSR no longer evaluates
+  browser-only Quasar internals.
+- Marketing disclosures close and restore focus consistently after `Escape`,
+  outside interaction, breakpoint changes or intercepted navigation.
+- Reduced-motion mode removes both transitions and decorative transforms.
+
+### Security
+
+- Links opened with `target="_blank"` merge `noopener noreferrer` with any
+  caller-provided `rel` value.
+
+This entry describes the repository candidate. It does not claim that `0.4.0`
+has been published to npm.
+
 ## [0.3.0] - 2026-07-23
 
 ### Added

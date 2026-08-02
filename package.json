@@ -1,6 +1,6 @@
 {
   "name": "@goastian/astian-ui",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": false,
   "type": "module",
   "description": "Design system y aplicaciones base de Astian sobre Vue 3 y Quasar.",
@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
+    "test:marketing": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test tests/e2e/marketing.spec.ts",
     "test:visual:update": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --update-snapshots",
     "test:package": "npm run build:lib && node scripts/verify-package.mjs",
     "test:consumer": "node tests/consumer/verify.mjs",
@@ -29,6 +30,41 @@
       "import": "./dist-lib/astian-ui.js",
       "require": "./dist-lib/astian-ui.cjs"
     },
+    "./input": {
+      "types": "./dist-lib/types/entries/input.d.ts",
+      "import": "./dist-lib/input.js",
+      "require": "./dist-lib/input.cjs"
+    },
+    "./textarea": {
+      "types": "./dist-lib/types/entries/textarea.d.ts",
+      "import": "./dist-lib/textarea.js",
+      "require": "./dist-lib/textarea.cjs"
+    },
+    "./checkbox": {
+      "types": "./dist-lib/types/entries/checkbox.d.ts",
+      "import": "./dist-lib/checkbox.js",
+      "require": "./dist-lib/checkbox.cjs"
+    },
+    "./button": {
+      "types": "./dist-lib/types/entries/button.d.ts",
+      "import": "./dist-lib/button.js",
+      "require": "./dist-lib/button.cjs"
+    },
+    "./marketing-navigation": {
+      "types": "./dist-lib/types/entries/marketing-navigation.d.ts",
+      "import": "./dist-lib/marketing-navigation.js",
+      "require": "./dist-lib/marketing-navigation.cjs"
+    },
+    "./locale-switch": {
+      "types": "./dist-lib/types/entries/locale-switch.d.ts",
+      "import": "./dist-lib/locale-switch.js",
+      "require": "./dist-lib/locale-switch.cjs"
+    },
+    "./marketing-action": {
+      "types": "./dist-lib/types/entries/marketing-action.d.ts",
+      "import": "./dist-lib/marketing-action.js",
+      "require": "./dist-lib/marketing-action.cjs"
+    },
     "./cloud": {
       "types": "./dist-lib/types/cloud/index.d.ts",
       "import": "./dist-lib/cloud.js",
@@ -38,6 +74,8 @@
     "./base.css": "./dist-lib/base.css",
     "./core.css": "./dist-lib/core.css",
     "./cloud.css": "./dist-lib/cloud.css",
+    "./forms.css": "./dist-lib/forms.css",
+    "./marketing.css": "./dist-lib/marketing.css",
     "./fonts.css": "./dist-lib/fonts.css",
     "./tokens.css": "./dist-lib/tokens.css",
     "./icons/*": "./dist-lib/icons/*"
@@ -53,14 +91,17 @@
     "**/*.css",
     "**/*.scss"
   ],
-  "dependencies": {
-    "@quasar/extras": "^1.17.0"
-  },
   "peerDependencies": {
     "quasar": "^2.16.0",
     "vue": "^3.5.0"
   },
+  "peerDependenciesMeta": {
+    "quasar": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@quasar/extras": "^1.17.0",
     "@playwright/test": "^1.61.1",
     "@quasar/vite-plugin": "^1.12.0",
     "@types/node": "^24.0.0",

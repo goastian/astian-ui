@@ -17,12 +17,16 @@ npm test
 npm run build
 npm run test:package
 npm run test:consumer
+npm run test:marketing
 npm pack --dry-run
 ```
 
-Run the targeted Playwright routes when a change affects rendered interaction,
-theme, or responsive layout. The clean Vue/Quasar consumer and compressed
-bundle budgets are mandatory for every package release. Only then:
+`test:consumer` must install the exact tarball, import ESM and CommonJS without
+DOM globals, run `renderToString`, build the conventional Quasar consumer and
+measure modular Vite profiles against a Vue-only baseline. `test:marketing` is
+mandatory for the 0.4 surface and validates 320, 375, 414 and 768 px. The clean
+consumer, compressed budgets and targeted browser behavior are release gates.
+Only then:
 
 ```bash
 npm version prerelease --preid beta # while the adoption is pilot

@@ -36,7 +36,9 @@ describe('contratos funcionales críticos', () => {
     })
 
     expect(wrapper.text()).toContain('Correo inválido')
-    expect(wrapper.find('.q-field--error').exists()).toBe(true)
+    expect(wrapper.get('input').attributes('aria-invalid')).toBe('true')
+    expect(wrapper.get('input').attributes('aria-describedby')).toContain('-hint')
+    expect(wrapper.get('label').attributes('for')).toBe(wrapper.get('input').attributes('id'))
     await wrapper.get('input').setValue('equipo@astian.org')
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual(['equipo@astian.org'])
   })

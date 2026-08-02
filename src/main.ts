@@ -1,6 +1,8 @@
 import '@quasar/extras/material-icons-round/material-icons-round.css'
 import 'quasar/src/css/index.sass'
 import './css/astian.scss'
+import './css/forms.css'
+import './css/marketing.css'
 
 import { Dialog, Loading, Notify, Quasar } from 'quasar'
 import iconSet from 'quasar/icon-set/material-icons-round'

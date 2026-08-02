@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "noUncheckedSideEffectImports": true,
     "strict": true,
     "skipLibCheck": false,
     "types": ["vite/client"]

@@ -17,6 +17,12 @@ const router = createRouter({
         { path: 'midori', name: 'midori', component: () => import('@/pages/MidoriPage.vue'), meta: { title: 'Midori' } }
       ]
     },
+    {
+      path: '/marketing-preview',
+      name: 'marketing-preview',
+      component: () => import('@/pages/MarketingPreviewPage.vue'),
+      meta: { title: 'Marketing components' }
+    },
     { path: '/:pathMatch(.*)*', component: () => import('@/pages/NotFoundPage.vue') }
   ],
   scrollBehavior: () => ({ top: 0, behavior: 'smooth' })

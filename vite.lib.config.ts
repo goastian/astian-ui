@@ -1,13 +1,12 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
+import { transformAssetUrls } from '@quasar/vite-plugin'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [
-    vue({ template: { transformAssetUrls } }),
-    quasar({ sassVariables: fileURLToPath(new URL('./src/css/quasar.variables.scss', import.meta.url)) })
+    vue({ template: { transformAssetUrls } })
   ],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
@@ -17,9 +16,16 @@ export default defineConfig({
     cssCodeSplit: true,
     lib: {
       entry: {
-        index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+        index: fileURLToPath(new URL('./src/entries/root.ts', import.meta.url)),
         cloud: fileURLToPath(new URL('./src/cloud/index.ts', import.meta.url)),
-        style: fileURLToPath(new URL('./src/style.ts', import.meta.url))
+        style: fileURLToPath(new URL('./src/style.ts', import.meta.url)),
+        input: fileURLToPath(new URL('./src/entries/input.ts', import.meta.url)),
+        textarea: fileURLToPath(new URL('./src/entries/textarea.ts', import.meta.url)),
+        checkbox: fileURLToPath(new URL('./src/entries/checkbox.ts', import.meta.url)),
+        button: fileURLToPath(new URL('./src/entries/button.ts', import.meta.url)),
+        'marketing-navigation': fileURLToPath(new URL('./src/entries/marketing-navigation.ts', import.meta.url)),
+        'locale-switch': fileURLToPath(new URL('./src/entries/locale-switch.ts', import.meta.url)),
+        'marketing-action': fileURLToPath(new URL('./src/entries/marketing-action.ts', import.meta.url))
       },
       name: 'AstianUI',
       formats: ['es', 'cjs'],
