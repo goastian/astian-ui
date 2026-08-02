@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import * as components from '@/components'
-import { componentParity, migratedPublicComponents, originalComponentFamilies } from '@/migration/componentParity'
+import {
+  componentParity,
+  migratedPublicComponents,
+  originalComponentFamilies,
+  vueNativePublicComponents
+} from '@/migration/componentParity'
+import { publicComponentNames } from '@/migration/publicComponentNames'
 
 const expectedOriginalFamilies = [
   'Avatar', 'Banner', 'Button', 'ButtonGroup', 'ButtonGroupItem', 'Chip',
@@ -29,5 +35,15 @@ describe('matriz de paridad React a Vue', () => {
     const publicComponents = Object.keys(components).sort()
     expect(migratedPublicComponents).toEqual(publicComponents)
     for (const target of migratedPublicComponents) expect(components).toHaveProperty(target)
+  })
+
+  it('mantiene el manifiesto ligero sincronizado con paridad y exports', () => {
+    const parityTargets = [...new Set([
+      ...componentParity.flatMap(({ targets }) => targets),
+      ...vueNativePublicComponents
+    ])].sort()
+
+    expect(publicComponentNames).toEqual(parityTargets)
+    expect(publicComponentNames).toEqual(Object.keys(components).sort())
   })
 })

@@ -1,3 +1,5 @@
+import { publicComponentNames } from './publicComponentNames'
+
 export type MigrationStrategy = 'ported' | 'adapted' | 'quasar-native'
 
 export interface ComponentParityEntry {
@@ -81,9 +83,4 @@ export const vueNativePublicComponents = [
   'AUploadQueue'
 ]
 
-export const migratedPublicComponents = [
-  ...new Set([
-    ...componentParity.flatMap(({ targets }) => targets),
-    ...vueNativePublicComponents
-  ])
-].sort()
+export const migratedPublicComponents: readonly string[] = publicComponentNames

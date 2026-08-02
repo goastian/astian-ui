@@ -1,9 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 
 import ProductShell from '@/layouts/ProductShell.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: typeof window === 'undefined'
+    ? createMemoryHistory(import.meta.env.BASE_URL)
+    : createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -25,9 +27,18 @@ const router = createRouter({
     },
     { path: '/:pathMatch(.*)*', component: () => import('@/pages/NotFoundPage.vue') }
   ],
-  scrollBehavior: () => ({ top: 0, behavior: 'smooth' })
+  scrollBehavior: () => ({
+    top: 0,
+    behavior: typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth'
+  })
 })
 
-router.afterEach((to) => { document.title = `${String(to.meta.title || 'Astian UI')} · Astian` })
+router.afterEach((to) => {
+  if (typeof document !== 'undefined') {
+    document.title = `${String(to.meta.title || 'Astian UI')} · Astian`
+  }
+})
 
 export default router

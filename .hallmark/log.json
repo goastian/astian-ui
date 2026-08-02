@@ -1,0 +1,44 @@
+[
+  {
+    "date": "2026-08-01",
+    "scope": "app",
+    "macrostructure": "Component Playground + Workbench",
+    "theme": "custom",
+    "theme_axes": "warm-neutral paper / geometric sans / terracotta accent",
+    "vibe": "Skiff restraint, Astian semantic warmth",
+    "enrichment": "none",
+    "nav": "N13 inline command + N3 product rail",
+    "footer": "Ft2 inline rule",
+    "brief": "Redesign the Astian UI catalog and four reference applications with working dark mode, SSR safety, and explicit performance budgets.",
+    "routes": [
+      "/ui",
+      "/astiango",
+      "/cloud",
+      "/calendar",
+      "/midori"
+    ],
+    "variation_knobs": {
+      "/ui": "lazy tabbed catalog + command search",
+      "/astiango": "search cockpit + privacy rail",
+      "/cloud": "file explorer + sticky operational metrics",
+      "/calendar": "schedule canvas + agenda",
+      "/midori": "start surface + protection dashboard"
+    },
+    "pre_emit_critique": "P5 H5 E5 S5 R5 V4",
+    "slop_test": "58 / 58 pass",
+    "contrast": "pass (40-41)",
+    "responsive": "pass (34, 49, 50-57)",
+    "validation": {
+      "viewports": [320, 375, 414, 768],
+      "themes": ["light", "dark", "system"],
+      "ssr": "7 subpaths x ESM/CJS without DOM globals",
+      "ui_dom_elements": 260,
+      "ui_cdp_nodes": 481,
+      "ui_event_listeners": 55,
+      "ui_lcp_local_ms": "184-292",
+      "ui_cls": "0-0.020",
+      "ui_initial_transfer_bytes": 132724,
+      "console_errors": 0
+    }
+  }
+]

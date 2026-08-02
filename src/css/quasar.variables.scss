@@ -1,12 +1,12 @@
-$primary: #176b52;
-$secondary: #48645b;
-$accent: #d56f3e;
-$dark: #171c1a;
-$dark-page: #111513;
-$positive: #178357;
-$negative: #c7473e;
-$info: #32749b;
-$warning: #b77a23;
+$primary: oklch(18% 0.012 150);
+$secondary: oklch(35% 0.012 150);
+$accent: oklch(56% 0.15 42);
+$dark: oklch(18% 0.012 150);
+$dark-page: oklch(14% 0.01 150);
+$positive: oklch(48% 0.125 155);
+$negative: oklch(52% 0.18 28);
+$info: oklch(50% 0.1 235);
+$warning: oklch(52% 0.11 75);
 
 $generic-border-radius: 10px;
 $button-border-radius: 10px;

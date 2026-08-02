@@ -31,18 +31,12 @@
   white-space: nowrap;
   cursor: pointer;
   transition:
-    transform var(--a-motion-fast),
     background var(--a-motion-fast),
-    color var(--a-motion-fast),
-    box-shadow var(--a-motion-fast);
-}
-
-.a-button:hover:not(:disabled, [aria-disabled='true']) {
-  transform: translateY(-1px);
+    color var(--a-motion-fast);
 }
 
 .a-button:active:not(:disabled, [aria-disabled='true']) {
-  transform: translateY(1px) scale(0.99);
+  transform: translateY(var(--a-border-width));
 }
 
 .a-button:focus-visible {
@@ -80,7 +74,6 @@
 .a-button--primary {
   background: var(--a-primary);
   color: var(--a-text-inverse);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--a-primary) 18%, transparent);
 }
 
 .a-button--primary:hover:not(:disabled, [aria-disabled='true']) {
@@ -176,8 +169,7 @@
   color: var(--a-text-primary);
   transition:
     border-color var(--a-motion-fast),
-    background var(--a-motion-fast),
-    box-shadow var(--a-motion-fast);
+    background var(--a-motion-fast);
 }
 
 .a-form-field__control:hover {
@@ -396,8 +388,7 @@
   background: var(--a-bg-raised);
   transition:
     border-color var(--a-motion-fast),
-    background var(--a-motion-fast),
-    box-shadow var(--a-motion-fast);
+    background var(--a-motion-fast);
 }
 
 .a-checkbox__native:checked + .a-checkbox__box,
@@ -499,5 +490,9 @@
   .a-checkbox__box {
     transition: none;
     animation: none;
+  }
+
+  .a-button:active {
+    transform: none;
   }
 }

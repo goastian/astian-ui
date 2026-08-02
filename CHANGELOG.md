@@ -2,6 +2,24 @@
 
 Relevant changes to Astian UI are documented here following Keep a Changelog and semantic versioning.
 
+## [0.5.0] - 2026-08-01
+
+### Added
+
+- Visual catalog derived from the public inventory, with command-based search, keyboard navigation, and responsive coverage at 320, 375, 414, and 768 px.
+
+- Reproducible budgets for `/ui`'s own JavaScript and CSS, its lazy panels, and the shared shell.
+
+### Changed
+
+- `/ui` has been redesigned as a compact Component Playground, with real categories and on-demand loading Fundamentals, Components, and Patterns panels.
+
+- The reference shell uses lighter HTML landmarks and controls, preserves the theme on mobile, and avoids requesting Material Icons on the initial load of `/ui`; the package maintains WOFF2 as an opt-in resource.
+
+- Portable tokens use OKLCH as the visual source of truth and maintain compatible `--a-*` aliases to avoid breaking existing components.
+
+This entry describes the repository candidate. It does not state that `0.5.0` has been published on npm.
+
 ## [0.4.0] - 2026-08-01
 
 ### Added

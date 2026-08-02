@@ -1,41 +1,477 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { AAvatar, AButton, AChip, AIconButton, AInput, AMonoTag, ASurface } from '@/components'
+import { computed, ref } from 'vue'
+
+import AAvatar from '@/components/AAvatar.vue'
+import AButton from '@/components/AButton.vue'
+import AChip from '@/components/AChip.vue'
+import AInput from '@/components/AInput.vue'
+import AMonoTag from '@/components/AMonoTag.vue'
+import AToggle from '@/components/AToggle.vue'
 
 const address = ref('')
+const protectionsEnabled = ref(true)
+const protectionLabel = computed(() => protectionsEnabled.value ? 'Activo' : 'Pausado')
+
 const stats = [
   { value: '1.284', label: 'rastreadores bloqueados', icon: 'visibility_off' },
   { value: '6,3 MB', label: 'datos evitados', icon: 'data_saver_on' },
   { value: '14 min', label: 'tiempo recuperado', icon: 'timer' }
 ]
+
 const shortcuts = [
-  { label: 'AstianGO', icon: 'travel_explore', color: 'green' },
-  { label: 'Cloud', icon: 'cloud', color: 'blue' },
-  { label: 'Calendar', icon: 'calendar_month', color: 'orange' },
-  { label: 'MidoriVPN', icon: 'vpn_lock', color: 'pink' },
-  { label: 'Privacidad', icon: 'shield', color: 'yellow' }
+  { label: 'AstianGO', icon: 'travel_explore', tone: 'primary' },
+  { label: 'Cloud', icon: 'cloud', tone: 'info' },
+  { label: 'Calendar', icon: 'calendar_month', tone: 'accent' },
+  { label: 'MidoriVPN', icon: 'vpn_lock', tone: 'secondary' },
+  { label: 'Privacidad', icon: 'shield', tone: 'warning' }
 ]
 </script>
 
 <template>
-  <q-page class="a-page midori-page">
-    <div class="midori-page__browser-bar"><div class="midori-page__traffic"><i></i><i></i><i></i></div><AIconButton icon="arrow_back" label="Atrás" /><AIconButton icon="arrow_forward" label="Adelante" /><AIconButton icon="refresh" label="Recargar" /><div class="midori-page__address"><q-icon name="lock" /><span>midori://newtab</span><AIconButton icon="star" label="Añadir marcador" size="small" /></div><AIconButton icon="shield" label="Protecciones" type="primary" variant="filled" /><AIconButton icon="more_vert" label="Menú" /></div>
-    <main class="midori-page__content">
-      <header class="midori-page__hero"><div class="midori-page__brand"><span class="midori-page__leaf"><q-icon name="eco" /></span><div><strong>Midori</strong><small>privacy browser</small></div></div><div class="midori-page__welcome"><span class="a-eyebrow">VIERNES · 17 JUL</span><h1>Buenas tardes, Lucía.</h1><p>Tu navegación sigue siendo tuya.</p></div><AAvatar label="Lucía Rivera" size="large" color="orange" rounded show-badge /></header>
-      <form class="midori-page__search" @submit.prevent><AInput v-model="address" placeholder="Busca con AstianGO o escribe una dirección" icon="search" size="large" /><AButton label="Ir" icon-right="arrow_forward" size="large" /></form>
-      <section class="midori-page__shortcuts"><button v-for="shortcut in shortcuts" :key="shortcut.label" type="button"><span :class="`midori-page__shortcut--${shortcut.color}`"><q-icon :name="shortcut.icon" /></span><strong>{{ shortcut.label }}</strong></button><button type="button"><span><q-icon name="add" /></span><strong>Añadir</strong></button></section>
-      <section class="midori-page__dashboard">
-        <ASurface level="l2" class="midori-page__protection"><div class="midori-page__card-head"><div><span class="a-eyebrow">PROTECCIÓN DE HOY</span><h2>El ruido se queda fuera.</h2></div><AChip label="Activo" icon="verified" selected /></div><div class="midori-page__stats"><div v-for="stat in stats" :key="stat.label"><q-icon :name="stat.icon" /><strong>{{ stat.value }}</strong><span>{{ stat.label }}</span></div></div></ASurface>
-        <ASurface class="midori-page__continue"><div class="midori-page__card-head"><div><span class="a-eyebrow">CONTINUAR</span><h2>Desde tus otros dispositivos</h2></div><AIconButton icon="devices" label="Gestionar dispositivos" /></div><article><span class="midori-page__site-icon"><q-icon name="article" /></span><div><strong>Designing privacy-respecting products</strong><p>uxdesign.cc · hace 18 min</p></div><AMonoTag label="PORTÁTIL" color="blue" /></article><article><span class="midori-page__site-icon"><q-icon name="code" /></span><div><strong>Vue 3 Composition API</strong><p>vuejs.org · ayer</p></div><AMonoTag label="MÓVIL" color="orange" /></article></ASurface>
+  <main class="a-page midori-page" aria-label="Midori">
+    <div class="midori-page__workbench">
+      <header class="midori-page__header">
+        <div class="midori-page__brand">
+          <span class="midori-page__leaf" aria-hidden="true">
+            <span class="material-icons-round">eco</span>
+          </span>
+          <span>
+            <strong>Midori</strong>
+            <small>privacy browser</small>
+          </span>
+        </div>
+
+        <div class="midori-page__session">
+          <AMonoTag label="NUEVA PESTAÑA" />
+          <AToggle v-model="protectionsEnabled" label="Protecciones" size="small" />
+          <AAvatar label="Lucía Rivera" size="large" color="orange" rounded show-badge />
+        </div>
+      </header>
+
+      <section class="midori-page__start" aria-labelledby="midori-welcome-title">
+        <header class="midori-page__welcome">
+          <span class="a-eyebrow">VIERNES · 17 JUL</span>
+          <h1 id="midori-welcome-title">Buenas tardes, Lucía.</h1>
+          <p>Tu navegación sigue siendo tuya.</p>
+        </header>
+
+        <form class="midori-page__search" role="search" @submit.prevent>
+          <AInput
+            v-model="address"
+            aria-label="Buscar o escribir una dirección"
+            placeholder="Busca con AstianGO o escribe una dirección"
+            icon="search"
+            size="large"
+            autocomplete="off"
+          />
+          <AButton label="Ir" icon-right="arrow_forward" size="large" native-type="submit" />
+        </form>
       </section>
-    </main>
-  </q-page>
+
+      <nav class="midori-page__shortcuts" aria-label="Accesos rápidos">
+        <button v-for="shortcut in shortcuts" :key="shortcut.label" type="button">
+          <span class="midori-page__shortcut-icon" :data-tone="shortcut.tone" aria-hidden="true">
+            <span class="material-icons-round">{{ shortcut.icon }}</span>
+          </span>
+          <strong>{{ shortcut.label }}</strong>
+        </button>
+        <button type="button">
+          <span class="midori-page__shortcut-icon" aria-hidden="true">
+            <span class="material-icons-round">add</span>
+          </span>
+          <strong>Añadir</strong>
+        </button>
+      </nav>
+
+      <div class="midori-page__dashboard">
+        <section class="midori-page__protection" aria-labelledby="midori-protection-title">
+          <header class="midori-page__section-heading">
+            <div>
+              <span class="a-eyebrow">PROTECCIÓN DE HOY</span>
+              <h2 id="midori-protection-title">El ruido se queda fuera.</h2>
+            </div>
+            <AChip :label="protectionLabel" icon="verified" :selected="protectionsEnabled" />
+          </header>
+
+          <div class="midori-page__stats">
+            <div v-for="stat in stats" :key="stat.label">
+              <span class="material-icons-round" aria-hidden="true">{{ stat.icon }}</span>
+              <strong>{{ stat.value }}</strong>
+              <span>{{ stat.label }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="midori-page__continue" aria-labelledby="midori-continue-title">
+          <header class="midori-page__section-heading">
+            <div>
+              <span class="a-eyebrow">CONTINUAR</span>
+              <h2 id="midori-continue-title">Desde tus otros dispositivos</h2>
+            </div>
+            <AButton label="Gestionar dispositivos" icon="devices" type="tertiary" size="small" />
+          </header>
+
+          <div class="midori-page__sessions">
+            <article>
+              <span class="midori-page__site-icon" aria-hidden="true">
+                <span class="material-icons-round">article</span>
+              </span>
+              <div>
+                <strong>Designing privacy-respecting products</strong>
+                <p>uxdesign.cc · hace 18 min</p>
+              </div>
+              <AMonoTag label="PORTÁTIL" color="blue" />
+            </article>
+            <article>
+              <span class="midori-page__site-icon" aria-hidden="true">
+                <span class="material-icons-round">code</span>
+              </span>
+              <div>
+                <strong>Vue 3 Composition API</strong>
+                <p>vuejs.org · ayer</p>
+              </div>
+              <AMonoTag label="MÓVIL" color="orange" />
+            </article>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
 </template>
 
 <style scoped>
-.midori-page { padding-top: 18px; }.midori-page__browser-bar { display: grid; grid-template-columns: auto repeat(3, auto) minmax(280px, 1fr) auto auto; gap: 4px; align-items: center; padding: 7px 9px; border: 1px solid var(--a-border); border-radius: 14px 14px 8px 8px; background: var(--a-bg-muted); }.midori-page__traffic { display: flex; gap: 6px; padding: 0 9px 0 4px; }.midori-page__traffic i { display: block; width: 10px; height: 10px; border-radius: 50%; background: #dc6b62; }.midori-page__traffic i:nth-child(2) { background: #dba44f; }.midori-page__traffic i:nth-child(3) { background: #58a879; }.midori-page__address { display: flex; align-items: center; gap: 8px; min-height: 36px; padding-left: 12px; border: 1px solid var(--a-border); border-radius: 9px; background: var(--a-bg-raised); color: var(--a-text-secondary); font-size: .75rem; }.midori-page__address > span { flex: 1; }.midori-page__address > .q-icon { color: var(--a-positive); }.midori-page__content { width: min(100%, 1120px); margin-inline: auto; padding: clamp(42px, 7vw, 88px) 0; }.midori-page__hero { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }.midori-page__brand { display: flex; gap: 10px; align-items: center; grid-column: 1 / -1; }.midori-page__brand > div { display: grid; }.midori-page__brand strong { font-size: 1.05rem; }.midori-page__brand small { color: var(--a-text-tertiary); font: .55rem var(--a-font-mono); letter-spacing: .08em; text-transform: uppercase; }.midori-page__leaf { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px 4px 12px 4px; background: var(--a-primary); color: var(--a-text-inverse); font-size: 21px; }.midori-page__welcome h1 { margin: 8px 0 4px; font-size: clamp(2.5rem, 5vw, 5rem); line-height: 1; letter-spacing: -.065em; }.midori-page__welcome p { margin: 0; color: var(--a-text-secondary); }.midori-page__search { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 34px 0 24px; padding: 7px; border: 1px solid var(--a-border); border-radius: 17px; background: var(--a-bg-surface); box-shadow: var(--a-shadow-1); }.midori-page__search :deep(.a-input .q-field__control::before) { border-color: transparent; }
-.midori-page__shortcuts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 44px; }.midori-page__shortcuts button { display: grid; gap: 8px; justify-items: center; border: 0; border-radius: 12px; padding: 12px 6px; background: transparent; color: var(--a-text-secondary); font-size: .68rem; cursor: pointer; transition: background var(--a-motion-fast), transform var(--a-motion-fast); }.midori-page__shortcuts button:hover { background: var(--a-bg-muted); transform: translateY(-2px); color: var(--a-text-primary); }.midori-page__shortcuts button > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--a-bg-raised); color: var(--a-text-secondary); box-shadow: inset 0 0 0 1px var(--a-border); font-size: 20px; }.midori-page__shortcut--green { color: var(--a-primary) !important; background: var(--a-primary-soft) !important; }.midori-page__shortcut--orange { color: var(--a-accent) !important; background: var(--a-accent-soft) !important; }.midori-page__shortcut--blue { color: var(--a-info) !important; background: color-mix(in srgb, var(--a-info) 12%, transparent) !important; }.midori-page__shortcut--pink { color: #b65a85 !important; background: color-mix(in srgb, #b65a85 12%, transparent) !important; }.midori-page__shortcut--yellow { color: var(--a-warning) !important; background: color-mix(in srgb, var(--a-warning) 12%, transparent) !important; }
-.midori-page__dashboard { display: grid; grid-template-columns: 1.1fr .9fr; gap: 14px; }.midori-page__card-head { display: flex; justify-content: space-between; gap: 20px; align-items: start; }.midori-page__card-head h2 { margin: 7px 0 0; font-size: 1.35rem; letter-spacing: -.035em; }.midori-page__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 32px; }.midori-page__stats > div { display: grid; gap: 4px; padding: 14px; border-radius: 11px; background: var(--a-bg-muted); }.midori-page__stats .q-icon { color: var(--a-primary); font-size: 20px; }.midori-page__stats strong { margin-top: 12px; font-size: 1.25rem; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }.midori-page__stats span { color: var(--a-text-secondary); font-size: .65rem; line-height: 1.35; }.midori-page__continue { display: grid; gap: 4px; }.midori-page__continue article { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--a-border); }.midori-page__continue article:first-of-type { margin-top: 14px; }.midori-page__continue article > div { min-width: 0; }.midori-page__continue article strong { display: block; overflow: hidden; font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }.midori-page__continue article p { margin: 3px 0 0; color: var(--a-text-tertiary); font-size: .64rem; }.midori-page__site-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; background: var(--a-bg-muted); color: var(--a-text-secondary); }
-@media (max-width: 900px) { .midori-page__dashboard { grid-template-columns: 1fr; }.midori-page__browser-bar { grid-template-columns: auto auto auto minmax(180px,1fr) auto; }.midori-page__browser-bar > :nth-child(3),.midori-page__browser-bar > :nth-child(4) { display: none; } }
-@media (max-width: 620px) { .midori-page__browser-bar { grid-template-columns: auto 1fr auto; }.midori-page__traffic,.midori-page__browser-bar > :nth-child(2),.midori-page__browser-bar > :nth-child(7) { display: none; }.midori-page__hero { grid-template-columns: 1fr; }.midori-page__hero > .a-avatar { display: none; }.midori-page__search { grid-template-columns: 1fr; }.midori-page__shortcuts { grid-template-columns: repeat(3, 1fr); }.midori-page__stats { grid-template-columns: 1fr; } }
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app */
+.midori-page {
+  min-width: 0;
+}
+
+.midori-page__workbench {
+  width: min(100%, var(--a-layout-viewer-max));
+  margin-inline: auto;
+}
+
+.midori-page__header,
+.midori-page__section-heading,
+.midori-page__session {
+  display: flex;
+  gap: var(--a-space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.midori-page__header {
+  min-height: var(--a-layout-header);
+  padding-block: var(--a-space-3);
+  border-block-end: var(--a-border-width) solid var(--a-border);
+}
+
+.midori-page__brand {
+  display: inline-flex;
+  gap: var(--a-space-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.midori-page__brand > span:last-child {
+  display: grid;
+}
+
+.midori-page__brand strong {
+  color: var(--a-text-primary);
+  font-size: var(--a-font-size-lg);
+  letter-spacing: var(--a-letter-spacing-heading);
+}
+
+.midori-page__brand small {
+  color: var(--a-text-tertiary);
+  font-family: var(--a-font-mono);
+  font-size: var(--a-font-size-xs);
+  letter-spacing: var(--a-letter-spacing-eyebrow);
+  text-transform: uppercase;
+}
+
+.midori-page__leaf {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--a-target-min);
+  height: var(--a-target-min);
+  border-radius: var(--a-radius-md) var(--a-radius-xs);
+  background: var(--a-text-primary);
+  color: var(--a-bg-raised);
+}
+
+.midori-page__leaf .material-icons-round {
+  font-size: var(--a-icon-lg);
+}
+
+.midori-page__session {
+  flex: none;
+  flex-wrap: wrap;
+}
+
+.midori-page__start {
+  display: grid;
+  gap: var(--a-space-6);
+  padding-block: clamp(var(--a-space-8), 8vw, var(--a-space-16));
+}
+
+.midori-page__welcome h1,
+.midori-page__welcome p {
+  margin: 0;
+}
+
+.midori-page__welcome h1 {
+  max-width: var(--a-layout-title);
+  margin-block: var(--a-space-2) var(--a-space-1);
+  font-size: clamp(var(--a-font-size-xl), 4vw, var(--a-font-size-metric));
+  font-weight: var(--a-font-weight-medium);
+  line-height: var(--a-line-height-tight);
+  letter-spacing: var(--a-letter-spacing-heading);
+  text-wrap: balance;
+}
+
+.midori-page__welcome p {
+  color: var(--a-text-secondary);
+}
+
+.midori-page__search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--a-space-2);
+  align-items: end;
+  width: 100%;
+  max-width: var(--a-layout-viewer-max);
+}
+
+.midori-page__shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--a-space-16) + var(--a-space-8)), 1fr));
+  gap: var(--a-space-2);
+  padding-block: var(--a-space-5) var(--a-space-8);
+  border-block-start: var(--a-border-width) solid var(--a-border);
+}
+
+.midori-page__shortcuts button {
+  display: grid;
+  gap: var(--a-space-2);
+  justify-items: center;
+  min-height: calc(var(--a-target-min) + var(--a-space-8));
+  padding: var(--a-space-3) var(--a-space-2);
+  border: 0;
+  border-radius: var(--a-radius-sm);
+  background: transparent;
+  color: var(--a-text-secondary);
+  font: inherit;
+  font-size: var(--a-font-size-xs);
+  cursor: pointer;
+}
+
+.midori-page__shortcuts button:hover {
+  background: var(--a-bg-hover);
+  color: var(--a-text-primary);
+}
+
+.midori-page__shortcut-icon,
+.midori-page__site-icon {
+  display: grid;
+  place-items: center;
+  width: var(--a-target-min);
+  height: var(--a-target-min);
+  border: var(--a-border-width) solid var(--a-border);
+  border-radius: var(--a-radius-sm);
+  background: var(--a-bg-raised);
+  color: var(--a-text-secondary);
+}
+
+.midori-page__shortcut-icon[data-tone='primary'] {
+  border-color: var(--a-primary);
+  background: var(--a-primary-soft);
+  color: var(--a-primary);
+}
+
+.midori-page__shortcut-icon[data-tone='info'] {
+  border-color: var(--a-info);
+  background: var(--a-bg-info-soft);
+  color: var(--a-info);
+}
+
+.midori-page__shortcut-icon[data-tone='accent'] {
+  border-color: var(--a-accent);
+  background: var(--a-accent-soft);
+  color: var(--a-accent);
+}
+
+.midori-page__shortcut-icon[data-tone='warning'] {
+  border-color: var(--a-warning);
+  background: var(--a-bg-warning-soft);
+  color: var(--a-warning);
+}
+
+.midori-page__shortcut-icon .material-icons-round,
+.midori-page__site-icon .material-icons-round {
+  font-size: var(--a-icon-md);
+}
+
+.midori-page__dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  border-block: var(--a-border-width) solid var(--a-border);
+}
+
+.midori-page__protection,
+.midori-page__continue {
+  min-width: 0;
+  padding-block: var(--a-space-8);
+}
+
+.midori-page__protection {
+  padding-inline-end: var(--a-space-8);
+}
+
+.midori-page__continue {
+  padding-inline-start: var(--a-space-8);
+  border-inline-start: var(--a-border-width) solid var(--a-border);
+}
+
+.midori-page__section-heading {
+  align-items: start;
+}
+
+.midori-page__section-heading h2 {
+  margin: var(--a-space-2) 0 0;
+  color: var(--a-text-primary);
+  font-size: var(--a-font-size-xl);
+  line-height: var(--a-line-height-tight);
+  letter-spacing: var(--a-letter-spacing-heading);
+}
+
+.midori-page__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-block-start: var(--a-space-8);
+}
+
+.midori-page__stats > div {
+  display: grid;
+  gap: var(--a-space-1);
+  min-width: 0;
+  padding-inline: var(--a-space-4);
+  border-inline-start: var(--a-border-width) solid var(--a-border);
+}
+
+.midori-page__stats > div:first-child {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+
+.midori-page__stats > div > .material-icons-round {
+  margin-block-end: var(--a-space-3);
+  color: var(--a-primary);
+  font-size: var(--a-icon-md);
+}
+
+.midori-page__stats strong {
+  color: var(--a-text-primary);
+  font-family: var(--a-font-mono);
+  font-size: var(--a-font-size-xl);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--a-letter-spacing-heading);
+}
+
+.midori-page__stats span:last-child {
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-xs);
+  line-height: var(--a-line-height-body);
+}
+
+.midori-page__sessions {
+  margin-block-start: var(--a-space-5);
+  border-block-start: var(--a-border-width) solid var(--a-border);
+}
+
+.midori-page__sessions article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--a-space-3);
+  align-items: center;
+  min-height: calc(var(--a-target-min) + var(--a-space-6));
+  padding-block: var(--a-space-3);
+  border-block-end: var(--a-border-width) solid var(--a-border);
+}
+
+.midori-page__sessions article > div {
+  min-width: 0;
+}
+
+.midori-page__sessions article strong {
+  display: block;
+  overflow: hidden;
+  color: var(--a-text-primary);
+  font-size: var(--a-font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.midori-page__sessions article p {
+  margin: var(--a-space-1) 0 0;
+  color: var(--a-text-tertiary);
+  font-size: var(--a-font-size-xs);
+}
+
+@media (max-width: 63.99rem) {
+  .midori-page__dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .midori-page__protection {
+    padding-inline-end: 0;
+  }
+
+  .midori-page__continue {
+    padding-inline-start: 0;
+    border-block-start: var(--a-border-width) solid var(--a-border);
+    border-inline-start: 0;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .midori-page__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .midori-page__session {
+    align-self: flex-start;
+  }
+
+}
+
+@media (max-width: 35.99rem) {
+  .midori-page__search,
+  .midori-page__stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .midori-page__search :deep(.a-button) {
+    width: 100%;
+  }
+
+  .midori-page__stats {
+    gap: var(--a-space-4);
+  }
+
+  .midori-page__stats > div,
+  .midori-page__stats > div:first-child {
+    padding-block-start: var(--a-space-4);
+    padding-inline: 0;
+    border-block-start: var(--a-border-width) solid var(--a-border);
+    border-inline-start: 0;
+  }
+
+  .midori-page__section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
 </style>

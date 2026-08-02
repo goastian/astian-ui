@@ -1,0 +1,44 @@
+{
+  "scanned_at": "2026-08-01",
+  "scope": "app: /ui, /astiango, /cloud, /calendar, /midori",
+  "framework": {
+    "name": "Vue",
+    "version": "^3.5.0",
+    "ui_runtime": "Quasar ^2.16.0",
+    "source": "package.json"
+  },
+  "font_stack": {
+    "display": "Avenir Next with system sans fallbacks",
+    "mono": "SFMono-Regular with system mono fallbacks",
+    "source": "design.md and tokens.css"
+  },
+  "palette": {
+    "source": "design.md and tokens.css",
+    "strategy_before_redesign": "Astian custom properties with literal light and dark values",
+    "strategy_after_redesign": "portable OKLCH design tokens with --a-* compatibility aliases"
+  },
+  "motion": {
+    "stance": "motion-cut",
+    "library": null,
+    "source": "package.json"
+  },
+  "spacing": {
+    "scale": "4pt",
+    "source": "src/css/tokens.css"
+  },
+  "preserve": [
+    "Vue and Quasar public contracts",
+    "Astian semantic states",
+    "4pt spacing scale",
+    "Skiff neutral-first density and surface hierarchy"
+  ],
+  "introduce": [
+    "shared multi-page design.md contract",
+    "Component Playground and Workbench macrostructures",
+    "N13 inline command search",
+    "Ft2 inline-rule footer",
+    "Hallmark interaction and responsive gates",
+    "explicit JavaScript, CSS, DOM and SSR budgets",
+    "reactive light, dark and system theme resolution"
+  ]
+}

@@ -1,9 +1,9 @@
 {
   "name": "@goastian/astian-ui",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": false,
   "type": "module",
-  "description": "Design system y aplicaciones base de Astian sobre Vue 3 y Quasar.",
+  "description": "Astian design system and reference applications for Vue 3 and Quasar.",
   "scripts": {
     "dev": "vite",
     "build": "npm run build:app && npm run build:lib",
@@ -14,6 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
     "test:marketing": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test tests/e2e/marketing.spec.ts",
+    "test:ui": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test tests/e2e/ui-redesign.spec.ts",
+    "test:ui-budget": "npm run build:app && node scripts/verify-ui-budget.mjs",
     "test:visual:update": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --update-snapshots",
     "test:package": "npm run build:lib && node scripts/verify-package.mjs",
     "test:consumer": "node tests/consumer/verify.mjs",

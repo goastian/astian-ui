@@ -94,7 +94,14 @@ test('marketing CSS honors reduced motion and primary action contrast', async ({
 
   const contrastRatio = await action.evaluate((element) => {
     const parse = (value: string) => {
-      const channels = value.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [0, 0, 0]
+      const canvas = document.createElement('canvas')
+      canvas.width = 1
+      canvas.height = 1
+      const context = canvas.getContext('2d', { colorSpace: 'srgb' })
+      if (!context) return [0, 0, 0]
+      context.fillStyle = value
+      context.fillRect(0, 0, 1, 1)
+      const channels = Array.from(context.getImageData(0, 0, 1, 1).data.slice(0, 3))
       return channels.map((channel) => {
         const normalized = channel / 255
         return normalized <= 0.04045

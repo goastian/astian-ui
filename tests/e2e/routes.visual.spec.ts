@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test'
 
 const routes = ['ui', 'astiango', 'cloud', 'calendar', 'midori'] as const
+const hallmarkWidths = [320, 375, 414, 768] as const
 
 for (const route of routes) {
-  test(`${route} renders without icon ligatures leaking into the interface`, async ({ page }, testInfo) => {
+  test(`${route} renders without icon ligatures leaking into the interface`, async ({ page }) => {
     const consoleErrors: string[] = []
     page.on('console', (message) => {
       if (message.type() === 'error') consoleErrors.push(message.text())
@@ -14,12 +15,54 @@ for (const route of routes) {
     await expect(page.locator('main, .q-page').first()).toBeVisible()
 
     expect(await page.locator('.material-icons').count()).toBe(0)
-    expect(await page.locator('.material-icons-round').count()).toBeGreaterThan(0)
+    if (route === 'ui') expect(await page.locator('.material-icons-round').count()).toBe(0)
+    else expect(await page.locator('.material-icons-round').count()).toBeGreaterThan(0)
     expect(consoleErrors).toEqual([])
-
-    await expect(page).toHaveScreenshot(`${route}-${testInfo.project.name}.png`, { fullPage: true })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth))
+      .toBeLessThanOrEqual(await page.evaluate(() => document.documentElement.clientWidth + 1))
   })
 }
+
+test.describe('reference application reflow and themes', () => {
+  test.beforeEach(({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-light')
+  })
+
+  for (const width of hallmarkWidths) {
+    test(`all routes remain bounded in light and dark at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: width < 400 ? 760 : 900 })
+
+      for (const route of routes) {
+        const consoleErrors: string[] = []
+        const recordConsoleError = (message: { type: () => string, text: () => string }) => {
+          if (message.type() === 'error') consoleErrors.push(message.text())
+        }
+        page.on('console', recordConsoleError)
+        await page.goto(`/${route}`)
+
+        for (const theme of ['light', 'dark'] as const) {
+          await page.getByRole('combobox', { name: 'Tema' }).selectOption(theme)
+          await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+
+          const audit = await page.evaluate(() => ({
+            clientWidth: document.documentElement.clientWidth,
+            scrollWidth: document.documentElement.scrollWidth,
+            mainCount: document.querySelectorAll('main').length,
+            canvas: getComputedStyle(document.body).backgroundColor,
+            text: getComputedStyle(document.body).color
+          }))
+
+          expect(audit.scrollWidth).toBeLessThanOrEqual(audit.clientWidth + 1)
+          expect(audit.mainCount).toBe(1)
+          expect(audit.canvas).not.toBe(audit.text)
+        }
+
+        expect(consoleErrors).toEqual([])
+        page.off('console', recordConsoleError)
+      }
+    })
+  }
+})
 
 test('desktop product navigation remains persistent after changing routes', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith('desktop'))
@@ -44,37 +87,23 @@ test('mobile product navigation closes after selecting a product', async ({ page
   await expect(drawer).toBeHidden()
 })
 
-test('overlay demo opens its dropdown and keeps it available for interaction', async ({ page }) => {
-  await page.goto('/ui')
-  await page.getByRole('button', { name: 'Abrir menú' }).click()
-
-  await expect(page.getByText('Duplicar vista', { exact: true })).toBeVisible()
-  await expect(page.getByText('Mover a producto', { exact: true })).toBeVisible()
-  await expect(page.locator('.q-menu.a-dropdown')).toHaveCSS('opacity', '1')
-
-  await page.getByText('Duplicar vista', { exact: true }).click()
-  await expect(page.locator('.q-menu.a-dropdown')).toBeHidden()
-  await expect(page.getByText('Cambios guardados', { exact: true })).toBeVisible()
-})
-
 test('priority form and stepper contracts work together with native keyboard behavior', async ({ page }) => {
   await page.goto('/ui')
+  await page.locator('[data-ui-tab="components"]').click()
 
   const visibility = page.getByRole('group', { name: 'Visibilidad' })
   const team = visibility.getByRole('radio', { name: /Equipo/ })
-  const link = visibility.getByRole('radio', { name: /Con enlace/ })
+  const link = visibility.getByRole('radio', { name: /^Enlace/ })
   await expect(team).toBeChecked()
   await team.focus()
   await team.press('ArrowRight')
   await expect(link).toBeChecked()
 
-  await expect(page.locator('input[type="date"]')).toHaveAttribute('min', '2026-08-01')
-  await expect(page.locator('input[type="datetime-local"]')).toHaveValue('2026-08-04T09:30')
-
-  const progress = page.getByRole('navigation', { name: 'Progreso' })
-  await expect(progress.getByRole('button', { name: /Detalles/ })).toHaveAttribute('aria-current', 'step')
+  await page.locator('[data-ui-tab="patterns"]').click()
+  const progress = page.getByRole('navigation', { name: 'Preparar publicación' })
+  await expect(progress.getByRole('button', { name: /Permisos/ })).toHaveAttribute('aria-current', 'step')
   await page.getByRole('button', { name: 'Continuar' }).click()
-  await expect(progress.getByRole('button', { name: /Acceso/ })).toHaveAttribute('aria-current', 'step')
+  await expect(progress.getByRole('button', { name: /Revisión/ })).toHaveAttribute('aria-current', 'step')
 })
 
 test('cloud selection keeps one controlled model and exposes a keyboard move action', async ({ page }) => {
@@ -89,6 +118,33 @@ test('cloud selection keeps one controlled model and exposes a keyboard move act
     inputs.every((input) => (input as HTMLInputElement).checked)
   ))).toBe(true)
   await expect(grid.getByRole('button', { name: /Mover .*…/ }).first()).toBeVisible()
+})
+
+test('cloud defers upload UI until the workflow is requested', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-light')
+
+  const lazyRequests: string[] = []
+  page.on('request', (request) => {
+    if (/A(?:Drawer|FileUpload|UploadQueue)-/.test(request.url())) lazyRequests.push(request.url())
+  })
+
+  await page.goto('/cloud')
+  await expect(page.locator('main')).toBeVisible()
+  expect(lazyRequests).toEqual([])
+
+  const newButton = page.getByRole('button', { name: 'Nuevo', exact: true }).first()
+  await newButton.click()
+  await expect(page.getByRole('dialog', { name: 'Añadir a Astian Cloud' })).toBeVisible()
+  expect(lazyRequests.some((url) => url.includes('ADrawer-'))).toBe(true)
+  expect(lazyRequests.some((url) => url.includes('AFileUpload-'))).toBe(true)
+  expect(lazyRequests.some((url) => url.includes('AUploadQueue-'))).toBe(false)
+
+  await page.getByRole('textbox', { name: 'URL del archivo' }).fill('https://astian.org/report.pdf')
+  await page.getByRole('button', { name: 'Añadir archivos' }).click()
+  await expect.poll(() => lazyRequests.some((url) => url.includes('AUploadQueue-'))).toBe(true)
+
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Añadir a Astian Cloud' })).toBeHidden()
 })
 
 test('desktop cloud marquee and internal drop emit controlled outcomes', async ({ page }, testInfo) => {

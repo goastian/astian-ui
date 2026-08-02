@@ -45,5 +45,5 @@ const initials = computed(() => props.label?.trim().split(/\s+/).map((part) => p
 .a-avatar--pink { --avatar-color: var(--a-color-pink); }
 .a-avatar--inactive { opacity: .45; }
 .a-avatar--disabled { filter: grayscale(1); opacity: .38; }
-.a-avatar__badge { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 28%; aspect-ratio: 1; min-width: 7px; border: 2px solid var(--a-bg-raised); border-radius: 50%; background: var(--a-positive); color: white; }
+.a-avatar__badge { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 28%; aspect-ratio: 1; min-width: 7px; border: var(--a-border-width-strong) solid var(--a-bg-raised); border-radius: var(--a-radius-round); background: var(--a-positive); color: var(--a-text-inverse); }
 </style>

@@ -1,305 +1,704 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch
+} from 'vue'
 
 import {
-  AAvatar, ABanner, AButton, AButtonGroup, AButtonGroupItem, AChip, ACircularProgress,
-  ACodeInput, ADialog, ADivider, ADropdown, ADropdownItem, ADropdownSubmenu, AFacepile,
-  AIcon, AIconButton, AIconText, AInput, AKeyCodeSequence, AMonoTag, APortal,
-  ARadioGroup, ASelect, ASkeleton, AStepper, ASurface, ATabs, ATextarea, AToast,
-  AToggle, ATooltip, ATypography
-} from '@/components'
-import { useAstianNotify } from '@/composables/useAstianNotify'
-import { componentParity } from '@/migration/componentParity'
-import type { ARadioOption, AStepSpec } from '@/types/core'
-import type { AstianOption, AstianPerson, AstianTab } from '@/types/ui'
+  catalogCategories,
+  componentCatalog,
+  filterComponentCatalog,
+  uiVersion,
+  type UiCatalogCategory,
+  type UiCatalogEntry
+} from './ui/catalog'
 
-const { notify } = useAstianNotify()
-const dialogOpen = ref(false)
-const menuOpen = ref(false)
-const toastVisible = ref(false)
-const bannerVisible = ref(true)
-const toggleValue = ref(true)
-const code = ref('')
-const input = ref('')
-const message = ref('Los componentes deben hablar con claridad y respetar el contexto del producto.')
-const selectValue = ref<string | number | null>('product')
-const visibility = ref<string | null>('team')
-const deliveryDate = ref('2026-08-04')
-const deliveryTime = ref('2026-08-04T09:30')
-const activeStep = ref('details')
-const activeTab = ref('foundations')
+const UiFoundationsPanel = defineAsyncComponent(() => import('./ui/UiFoundationsPanel.vue'))
+const UiComponentsPanel = defineAsyncComponent(() => import('./ui/UiComponentsPanel.vue'))
+const UiPatternsPanel = defineAsyncComponent(() => import('./ui/UiPatternsPanel.vue'))
 
-const visibilityOptions: ARadioOption<string>[] = [
-  { label: 'Privado', description: 'Sólo tú puedes abrirlo.', value: 'private' },
-  { label: 'Equipo', description: 'Personas del espacio con permiso.', value: 'team' },
-  { label: 'Con enlace', description: 'El producto valida el acceso antes de compartir.', value: 'link' }
-]
+const panels = {
+  foundations: UiFoundationsPanel,
+  components: UiComponentsPanel,
+  patterns: UiPatternsPanel
+} as const
 
-const setupSteps: AStepSpec<string>[] = [
-  { id: 'details', title: 'Detalles', description: 'Nombre y disponibilidad.', state: 'complete' },
-  { id: 'access', title: 'Acceso', description: 'Quién puede abrirlo.' },
-  { id: 'review', title: 'Revisión', description: 'Confirma antes de guardar.' }
-]
+const tabs = catalogCategories.map((tab) => ({
+  ...tab,
+  count: componentCatalog.filter(({ category }) => category === tab.id).length
+}))
 
-const options: AstianOption[] = [
-  { label: 'Producto', value: 'product', description: 'Interfaces de uso diario', icon: 'category' },
-  { label: 'Marketing', value: 'marketing', description: 'Experiencias públicas', icon: 'campaign' },
-  { label: 'Operaciones', value: 'operations', description: 'Herramientas internas', icon: 'build' }
-]
+const activeTab = ref<UiCatalogCategory>('foundations')
+const activePanel = computed(() => panels[activeTab.value])
+const commandDialog = ref<HTMLDialogElement | null>(null)
+const searchInput = ref<HTMLInputElement | null>(null)
+const searchTrigger = ref<HTMLButtonElement | null>(null)
+const tabButtons = ref<HTMLButtonElement[]>([])
+const searchQuery = ref('')
+const activeResultIndex = ref(0)
+const copiedTarget = ref<'install' | 'import' | null>(null)
+const lastFocused = ref<HTMLElement | null>(null)
+let copyTimer: ReturnType<typeof setTimeout> | undefined
 
-const tabs: AstianTab[] = [
-  { label: 'Fundamentos', value: 'foundations', icon: 'grid_view' },
-  { label: 'Componentes', value: 'components', icon: 'widgets', badge: 26 },
-  { label: 'Patrones', value: 'patterns', icon: 'account_tree' }
-]
+const installCommand = 'npm install @goastian/astian-ui quasar vue'
+const importExample = "import { AButton } from '@goastian/astian-ui/button'"
+const searchResults = computed(() => filterComponentCatalog(searchQuery.value).slice(0, 10))
+const activeResultId = computed(() => searchResults.value[activeResultIndex.value]
+  ? `ui-command-result-${activeResultIndex.value}`
+  : undefined)
 
-const people: AstianPerson[] = [
-  { id: '1', name: 'Lucía Rivera', color: 'orange', active: true },
-  { id: '2', name: 'Andrés Pardo', color: 'green', active: true },
-  { id: '3', name: 'Mina Park', color: 'blue', active: true },
-  { id: '4', name: 'João Costa', color: 'pink', active: false },
-  { id: '5', name: 'Amara Okafor', color: 'yellow', active: true }
-]
+watch(searchResults, (results) => {
+  activeResultIndex.value = Math.min(activeResultIndex.value, Math.max(0, results.length - 1))
+})
 
-const migrationFoundations = [
-  { name: 'AAppShell', purpose: 'Shell persistente con header, navegación, main y aside.', contract: 'Skip link, foco de ruta, reflow y slots sin lógica de negocio.' },
-  { name: 'ANavigationRail / ASidebar', purpose: 'Navegación agrupada, colapsable y móvil.', contract: 'Roving focus, badges, destino activo y targets de 44 px.' },
-  { name: 'ANavItem', purpose: 'Destino de router, URL o acción.', contract: 'Nombre accesible, icono, badge, active y disabled.' },
-  { name: 'ABreadcrumbs', purpose: 'Orientación jerárquica responsive.', contract: 'Landmark nav, página actual y rutas intermedias operables.' },
-  { name: 'ADrawer / ASidePanel', purpose: 'Panel lateral modal o no modal.', contract: 'Escape, focus trap modal, dismiss y restauración de foco.' },
-  { name: 'ACheckbox / ACheckboxGroup', purpose: 'Selección booleana o de colección.', contract: 'Indeterminado, fieldset, hint, error y disabled.' },
-  { name: 'ARadio / ARadioGroup', purpose: 'Preferencias mutuamente excluyentes visibles.', contract: 'Modelo tipado, descripción, readonly, flechas, Home/End y espacio.' },
-  { name: 'AInput date / datetime-local', purpose: 'Fecha nativa sin conversión de zona horaria.', contract: 'min, max, step, label, hint, error, disabled y readonly.' },
-  { name: 'AStepper', purpose: 'Pasos controlados para flujos sucesivos.', contract: 'Estados, orientación, anuncios e intenciones sin navegación de producto.' },
-  { name: 'ALinearProgress / AQuotaMeter', purpose: 'Progreso y consumo de cuota.', contract: 'Determinado, indeterminado, estados y valores ARIA.' },
-  { name: 'ADataTable', purpose: 'Datos tipados y acciones por fila.', contract: 'Sorting controlado, selección, sticky header y vista móvil.' },
-  { name: 'APagination', purpose: 'Páginas o cursores persistibles.', contract: 'Tamaños, total, query string y labels accesibles.' },
-  { name: 'AEmptyState / AErrorState', purpose: 'Ausencia, fallo y recuperación.', contract: 'Copy externo, acciones, retry y regiones anunciables.' },
-  { name: 'ACombobox / ASearchAutocomplete', purpose: 'Búsqueda y selección asíncrona.', contract: 'Debounce, cancelación, listbox, teclado y aria-activedescendant.' },
-  { name: 'AContextMenu', purpose: 'Acciones contextuales consistentes.', contract: 'Clic derecho, Shift+F10, roving focus, submenús y retorno de foco.' },
-  { name: 'APopover', purpose: 'Contenido interactivo no modal anclado.', contract: 'Click o foco, posicionamiento, dismiss y Escape.' },
-  { name: 'ADropzone / AFileUpload', purpose: 'Selección, arrastre y URL.', contract: 'Tipos, tamaño, permisos y validadores sin transporte.' },
-  { name: 'AUploadQueue', purpose: 'Estado de cargas controlado por producto.', contract: 'Progreso, pausa, cancelación, reintento y live region.' }
-] as const
+const copySnippet = async (target: 'install' | 'import', value: string) => {
+  if (typeof navigator === 'undefined' || !navigator.clipboard) return
 
-const cloudPatterns = [
-  { name: 'ACloudPageHeader / ACloudToolbar', purpose: 'Contexto, búsqueda, Nuevo, filtros, orden y vista.' },
-  { name: 'AFileItem / AFileCard', purpose: 'Archivo operable, selección, favorito, privacidad y colaboradores.' },
-  { name: 'AFolderItem', purpose: 'Carpeta con recuento, permiso, compartición y navegación.' },
-  { name: 'AFileGrid / AFileTable', purpose: 'Cambio de vista conservando selección y elemento activo.' },
-  { name: 'AFolderTree / AFolderPicker', purpose: 'Jerarquía lazy y selección para mover o copiar.' },
-  { name: 'AMediaGrid / APhotoTile', purpose: 'Galería responsive con selección y miniaturas seguras.' },
-  { name: 'AMediaViewer / AFilePreview', purpose: 'Imagen, PDF, video, audio, zoom, metadata y fallback.' },
-  { name: 'AFileDetailsPanel', purpose: 'Detalles progresivos: tags, permisos, comentarios, versiones y actividad.' },
-  { name: 'ANotificationCenter', purpose: 'Unread, grupos, acciones y estado de conexión sin transporte.' },
-  { name: 'AStatCard / AMetricCard', purpose: 'Cuota, actividad y equipo con números tabulares.' },
-  { name: 'AColorPicker / ASwatchPicker', purpose: 'Swatches con nombre visible; nunca solo color.' }
-] as const
+  try {
+    await navigator.clipboard.writeText(value)
+    copiedTarget.value = target
+    if (copyTimer) clearTimeout(copyTimer)
+    copyTimer = setTimeout(() => { copiedTarget.value = null }, 1600)
+  } catch {
+    copiedTarget.value = null
+  }
+}
 
-const showNotification = () => notify({
-  title: 'Cambios guardados',
-  body: 'La preferencia ya está disponible en todos los productos.',
-  type: 'positive',
-  icon: 'check_circle',
-  action: { label: 'Ver', handler: () => dialogOpen.value = true }
+const openCommand = () => {
+  if (typeof document === 'undefined') return
+
+  lastFocused.value = document.activeElement as HTMLElement | null
+  if (!commandDialog.value?.open) commandDialog.value?.showModal()
+  void nextTick(() => searchInput.value?.focus())
+}
+
+const closeCommand = () => commandDialog.value?.close()
+
+const restoreCommandFocus = () => {
+  searchQuery.value = ''
+  activeResultIndex.value = 0
+  void nextTick(() => {
+    ;(lastFocused.value ?? searchTrigger.value)?.focus()
+    lastFocused.value = null
+  })
+}
+
+const handleDialogPointer = (event: MouseEvent) => {
+  if (event.target === event.currentTarget) closeCommand()
+}
+
+const moveResult = (direction: 1 | -1) => {
+  const total = searchResults.value.length
+  if (total === 0) return
+  activeResultIndex.value = (activeResultIndex.value + direction + total) % total
+}
+
+const scrollToCatalogEntry = (entry: UiCatalogEntry, attempt = 0) => {
+  if (typeof document === 'undefined') return
+
+  const target = document.getElementById(entry.anchor)
+    ?? document.querySelector<HTMLElement>(`[data-ui-panel="${entry.category}"]`)
+
+  if (!target && attempt < 12) {
+    setTimeout(() => scrollToCatalogEntry(entry, attempt + 1), 32)
+    return
+  }
+
+  if (!target) return
+  const reduceMotion = typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' })
+}
+
+const selectCatalogEntry = (entry: UiCatalogEntry) => {
+  activeTab.value = entry.category
+  closeCommand()
+  void nextTick(() => scrollToCatalogEntry(entry))
+}
+
+const selectActiveResult = () => {
+  const result = searchResults.value[activeResultIndex.value]
+  if (result) selectCatalogEntry(result)
+}
+
+const selectTab = (category: UiCatalogCategory) => {
+  activeTab.value = category
+}
+
+const moveTab = (currentIndex: number, event: KeyboardEvent) => {
+  let nextIndex = currentIndex
+  if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length
+  else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length
+  else if (event.key === 'Home') nextIndex = 0
+  else if (event.key === 'End') nextIndex = tabs.length - 1
+  else return
+
+  event.preventDefault()
+  activeTab.value = tabs[nextIndex].id
+  void nextTick(() => tabButtons.value[nextIndex]?.focus())
+}
+
+const handleGlobalShortcut = (event: KeyboardEvent) => {
+  if (event.isComposing || event.key.toLocaleLowerCase('es') !== 'k') return
+  if (!event.metaKey && !event.ctrlKey) return
+  event.preventDefault()
+  openCommand()
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalShortcut)
+})
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') window.removeEventListener('keydown', handleGlobalShortcut)
+  if (copyTimer) clearTimeout(copyTimer)
 })
 </script>
 
 <template>
-  <q-page class="a-page design-system-page">
-    <header class="design-system-page__hero a-section">
-      <div>
-        <span class="a-eyebrow">ASTIAN DESIGN LANGUAGE · 0.1</span>
-        <h1 class="a-display">Una interfaz.<br><em>Muchos productos.</em></h1>
-        <p class="a-lede">Vue y Quasar forman la infraestructura. Astian UI define el lenguaje: contraste sereno, acciones explícitas, privacidad visible y componentes que funcionan igual en búsqueda, nube, calendario y navegador.</p>
-        <AButtonGroup align="left">
-          <AButton label="Explorar componentes" icon="widgets" @click="activeTab = 'components'" />
-          <AButton label="Abrir diálogo" type="secondary" icon="open_in_new" @click="dialogOpen = true" />
-        </AButtonGroup>
+  <main class="ui-catalog" aria-labelledby="ui-catalog-title">
+    <header class="ui-catalog__intro">
+      <div class="ui-catalog__version">
+        <code>v{{ uiVersion }}</code>
+        <span>{{ componentCatalog.length }} exports públicos</span>
       </div>
-      <ASurface level="l2" class="design-system-page__manifesto">
-        <span class="a-eyebrow">PRINCIPIO 01</span>
-        <blockquote>“La privacidad no debe sentirse como una configuración avanzada. Debe estar presente en cada decisión.”</blockquote>
-        <div class="design-system-page__manifesto-meta"><AFacepile :people="people" :max-displayed="4" size="xmedium" /><span>Equipo de producto Astian</span></div>
-      </ASurface>
+      <div class="ui-catalog__intro-copy">
+        <div>
+          <h1 id="ui-catalog-title">Astian UI</h1>
+          <p>Componentes ligeros para producto y marketing, con el rigor visual de Skiff y contratos Vue seguros para SSR.</p>
+        </div>
+        <button
+          ref="searchTrigger"
+          type="button"
+          class="ui-catalog__search-trigger"
+          aria-haspopup="dialog"
+          aria-controls="ui-command-dialog"
+          @click="openCommand"
+        >
+          <span>Buscar componente</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+      </div>
     </header>
 
-    <ABanner v-if="bannerVisible" label="Esta base es migrable por producto: adopta tokens primero y componentes después." icon="compare_arrows" color="green" closable :actions="[{ label: 'Ver estrategia', action: () => dialogOpen = true }]" @close="bannerVisible = false" />
-
-    <ATabs v-model="activeTab" :tabs="tabs" size="large" />
-
-    <section class="a-section">
-      <div class="a-section__header"><div><span class="a-eyebrow">FUNDAMENTOS</span><h2>Color, tipo y ritmo</h2></div><p class="a-lede">Los tokens semánticos permiten cambiar de marca o tema sin reescribir componentes. Las aplicaciones consumen intención, no valores hexadecimales.</p></div>
-      <div class="a-grid">
-        <ASurface class="design-system-page__type" level="l2"><ATypography size="h2" weight="bold">Buscar sin dejar rastro.</ATypography><ATypography tone="secondary" size="large">Titulares compactos, texto cómodo y datos tabulares cuando importa comparar.</ATypography><AKeyCodeSequence shortcut="Ctrl + K" size="large" /></ASurface>
-        <ASurface class="design-system-page__colors" level="l2">
-          <div v-for="color in ['primary','accent','positive','info','warning','negative']" :key="color" class="design-system-page__swatch" :class="`design-system-page__swatch--${color}`"><span></span><div><strong>{{ color }}</strong><small>token semántico</small></div></div>
-        </ASurface>
+    <section class="ui-catalog__quickstart" aria-labelledby="ui-quickstart-title">
+      <div>
+        <h2 id="ui-quickstart-title">Empieza por el export más pequeño.</h2>
+        <p>Los subpaths evitan cargar el entrypoint completo y mantienen el CSS aislado.</p>
+      </div>
+      <div class="ui-catalog__snippets">
+        <button type="button" aria-label="Copiar comando de instalación" @click="copySnippet('install', installCommand)">
+          <code>{{ installCommand }}</code>
+          <span>{{ copiedTarget === 'install' ? 'Copiado' : 'Copiar' }}</span>
+        </button>
+        <button type="button" aria-label="Copiar ejemplo de importación" @click="copySnippet('import', importExample)">
+          <code>{{ importExample }}</code>
+          <span>{{ copiedTarget === 'import' ? 'Copiado' : 'Copiar' }}</span>
+        </button>
       </div>
     </section>
 
-    <section class="a-section">
-      <div class="a-section__header"><div><span class="a-eyebrow">ACCIONES</span><h2>Jerarquía antes que decoración</h2></div><p class="a-lede">Cada acción comunica prioridad, riesgo y estado. Hover, foco y presión son parte del contrato.</p></div>
-      <ASurface level="l1" class="design-system-page__showcase">
-        <div class="design-system-page__row"><AButton label="Acción principal" icon="arrow_forward" /><AButton label="Secundaria" type="secondary" /><AButton label="Tercera" type="tertiary" /><AButton label="Eliminar" type="destructive" icon="delete" /><AButton label="Procesando" loading /></div>
-        <ADivider />
-          <div class="design-system-page__row"><AIconButton icon="edit" label="Editar" type="primary" variant="filled" /><AIconButton icon="share" label="Compartir" /><AIconButton icon="delete" label="Eliminar" type="destructive" /><AIconText start-icon="lock" label="Cifrado local" tone="secondary" /><AIconText start-icon="open_in_new" label="Abrir producto" tone="link" interactive /></div>
-        <ADivider />
-        <div class="design-system-page__row"><AChip label="Privado" icon="visibility_off" color="green" selected /><AChip label="Sincronizado" icon="sync" color="blue" /><AChip label="Borrador" color="orange" removable /><AMonoTag label="E2EE" icon="encrypted" /><AMonoTag label="BETA 04" color="orange" /></div>
-      </ASurface>
+    <div class="ui-catalog__tabs" role="tablist" aria-label="Catálogo de Astian UI">
+      <button
+        v-for="(tab, index) in tabs"
+        :id="`ui-tab-${tab.id}`"
+        :key="tab.id"
+        ref="tabButtons"
+        type="button"
+        role="tab"
+        :data-ui-tab="tab.id"
+        :tabindex="activeTab === tab.id ? 0 : -1"
+        :aria-selected="activeTab === tab.id"
+        :aria-controls="`ui-panel-${tab.id}`"
+        @click="selectTab(tab.id)"
+        @keydown="moveTab(index, $event)"
+      >
+        <span>{{ tab.label }}</span>
+        <small>{{ tab.count }}</small>
+      </button>
+    </div>
+
+    <section
+      :id="`ui-panel-${activeTab}`"
+      class="ui-catalog__panel"
+      role="tabpanel"
+      :data-ui-panel="activeTab"
+      :aria-labelledby="`ui-tab-${activeTab}`"
+      tabindex="0"
+    >
+      <component :is="activePanel" :key="activeTab" />
     </section>
 
-    <section class="a-section">
-      <div class="a-section__header"><div><span class="a-eyebrow">ENTRADA</span><h2>Campos que explican qué ocurre</h2></div><p class="a-lede">Ayuda, validación y estados aparecen junto al dato; nunca en alertas desconectadas.</p></div>
-      <div class="a-grid">
-        <ASurface level="l2" class="design-system-page__form">
-          <AInput v-model="input" label="Nombre del espacio" placeholder="Ej. Producto AstianGO" icon="folder" hint="Visible sólo para tu equipo" clearable />
-          <ASelect v-model="selectValue" :options="options" label="Contexto de uso" />
-          <ARadioGroup
-            v-model="visibility"
-            label="Visibilidad"
-            :options="visibilityOptions"
-            orientation="horizontal"
-            hint="Las opciones permanecen visibles para comparar su alcance."
-            required
-          />
-          <div class="design-system-page__date-fields">
-            <AInput v-model="deliveryDate" type="date" label="Fecha de entrega" min="2026-08-01" max="2026-12-31" />
-            <AInput v-model="deliveryTime" type="datetime-local" label="Publicar" step="900" hint="Se conserva la hora local escrita." />
-          </div>
-          <ATextarea v-model="message" label="Descripción" autogrow />
-          <div class="design-system-page__row"><AToggle v-model="toggleValue" label="Compartir cambios con el equipo" /><q-space /><AButton label="Guardar" @click="showNotification" /></div>
-        </ASurface>
-        <ASurface level="l2" class="design-system-page__verification">
-          <span class="a-eyebrow">SEGURIDAD LOCAL</span><ATypography size="h3" weight="bold">Confirma el dispositivo</ATypography><ATypography tone="secondary">Introduce el código de seis caracteres enviado a tu sesión activa.</ATypography><ACodeInput v-model="code" :code-length="6" @submit="showNotification" />
-          <div class="design-system-page__progress"><ACircularProgress :progress="72">72</ACircularProgress><div><strong>Configuración segura</strong><small>3 de 4 controles activos</small></div></div>
-        </ASurface>
+    <footer class="ui-catalog__footer">
+      <span>Astian UI v{{ uiVersion }}</span>
+      <span>Vue 3 · Quasar opcional · MIT</span>
+    </footer>
+  </main>
+
+  <dialog
+    id="ui-command-dialog"
+    ref="commandDialog"
+    class="ui-catalog__command-dialog"
+    aria-labelledby="ui-command-title"
+    @close="restoreCommandFocus"
+    @click="handleDialogPointer"
+  >
+    <header class="ui-catalog__command-header">
+      <div>
+        <h2 id="ui-command-title">Ir a un componente</h2>
+        <p>Busca por nombre, función o subpath.</p>
       </div>
-      <ASurface level="l1" class="design-system-page__showcase design-system-page__stepper">
-        <AStepper
-          v-model:active-step="activeStep"
-          :steps="setupSteps"
-          @next="(_current, next) => { if (next) activeStep = next.id }"
-          @back="(_current, previous) => { if (previous) activeStep = previous.id }"
-          @step-request="step => activeStep = step.id"
-          @cancel="showNotification"
-          @complete="showNotification"
-        >
-          <template #default="{ step }">
-            <p class="a-lede">Contenido controlado del paso <strong>{{ step.title }}</strong>. La aplicación conserva validación, persistencia y rutas.</p>
-          </template>
-        </AStepper>
-      </ASurface>
-    </section>
+      <button type="button" aria-label="Cerrar búsqueda" @click="closeCommand">Cerrar</button>
+    </header>
 
-    <section class="a-section">
-      <div class="a-section__header"><div><span class="a-eyebrow">IDENTIDAD Y ESTADOS</span><h2>Personas, progreso y ausencia</h2></div><p class="a-lede">Los avatares preservan la escala del sistema original; skeletons y progresos evitan saltos durante las cargas.</p></div>
-      <ASurface level="l1" class="design-system-page__showcase">
-        <div class="design-system-page__row"><AAvatar v-for="(person, index) in people" :key="person.id" :label="person.name" :color="person.color" :active="person.active" :size="index === 0 ? 'large' : 'xmedium'" rounded :show-badge="index < 2" /><AFacepile :people="people" :max-displayed="3" size="xmedium" /></div>
-        <ADivider />
-        <div class="design-system-page__skeletons"><ASkeleton type="QAvatar" width="44px" height="44px" /><div><ASkeleton width="190px" height="13px" /><ASkeleton width="130px" height="10px" /></div><ACircularProgress spinner size="medium" /></div>
-      </ASurface>
-    </section>
+    <label class="ui-catalog__command-search">
+      <span class="ui-catalog__sr-only">Buscar en el catálogo</span>
+      <input
+        ref="searchInput"
+        v-model="searchQuery"
+        type="search"
+        role="combobox"
+        autocomplete="off"
+        aria-autocomplete="list"
+        aria-controls="ui-command-results"
+        :aria-activedescendant="activeResultId"
+        :aria-expanded="true"
+        placeholder="Ej. input, marketing o navegación"
+        @keydown.down.prevent="moveResult(1)"
+        @keydown.up.prevent="moveResult(-1)"
+        @keydown.enter.prevent="selectActiveResult"
+      >
+      <kbd>Esc</kbd>
+    </label>
 
-    <section class="a-section">
-      <div class="a-section__header"><div><span class="a-eyebrow">OVERLAYS</span><h2>Capas con contexto y salida clara</h2></div><p class="a-lede">Menús, tooltips y diálogos heredan posicionamiento, navegación por teclado y cierre accesible de Quasar.</p></div>
-      <ASurface level="l2" class="design-system-page__overlay-demo">
-        <AButton id="overlay-menu-trigger" label="Abrir menú" type="secondary" icon="more_horiz" />
-        <ADropdown v-model="menuOpen" target="#overlay-menu-trigger" auto-close width="240px"><ADropdownItem label="Duplicar vista" icon="content_copy" shortcut="⌘D" @click="showNotification" /><ADropdownSubmenu label="Mover a producto" icon="drive_file_move"><ADropdownItem label="AstianGO" icon="travel_explore" /><ADropdownItem label="Astian Cloud" icon="cloud" /></ADropdownSubmenu><ADivider /><ADropdownItem label="Eliminar vista" icon="delete" color="destructive" /></ADropdown>
-        <AButton label="Abrir diálogo" @click="dialogOpen = true" />
-        <AButton label="Mostrar toast" type="tertiary" icon="notifications" @click="toastVisible = true" />
-        <span class="design-system-page__tooltip-trigger" tabindex="0">Pasa por aquí <ATooltip title="La ayuda aparece con mouse y teclado" shortcut="?" /></span>
-      </ASurface>
-    </section>
-
-    <section class="a-section">
-      <div class="a-section__header"><div><span class="a-eyebrow">API PÚBLICA</span><h2>Todos los componentes, sin excepciones</h2></div><p class="a-lede">La matriz se genera desde el mismo inventario que validan las pruebas. Cada familia React tiene una decisión Vue/Quasar explícita.</p></div>
-      <div class="a-grid">
-        <ASurface level="l2" class="design-system-page__api-sample">
-          <span class="a-eyebrow">PRIMITIVAS RESTANTES</span>
-          <div class="design-system-page__row"><AIcon name="shield" label="Protección" size="large" /><AIcon name="shield-encrypt" legacy label="Cifrado heredado" size="large" /><AIcon name="sync" tone="link" :rotate="18" /></div>
-          <AButtonGroup layout="stacked" full-width><AButtonGroupItem label="Publicar cambios" icon="publish" /><AButtonGroupItem label="Programar" icon="schedule" type="secondary" /><AButtonGroupItem label="Acción no disponible" disabled /></AButtonGroup>
-          <APortal disabled><p class="design-system-page__portal-note"><AIcon name="move_up" size="small" /> Portal desactivado: el contenido permanece en contexto.</p></APortal>
-        </ASurface>
-        <ASurface level="l1" :padding="false" class="design-system-page__parity">
-          <div class="design-system-page__parity-header"><strong>Paridad React → Vue</strong><AMonoTag :label="`${componentParity.length}/28`" /></div>
-          <div class="design-system-page__parity-list">
-            <div v-for="entry in componentParity" :key="entry.source" class="design-system-page__parity-row">
-              <strong>{{ entry.source }}</strong><span>{{ entry.targets.join(' + ') }}</span><AMonoTag :label="entry.strategy" :color="entry.strategy === 'quasar-native' ? 'blue' : entry.strategy === 'adapted' ? 'orange' : 'green'" />
-            </div>
-          </div>
-        </ASurface>
-      </div>
-    </section>
-
-    <section id="cloud-migration-components" class="a-section">
-      <div class="a-section__header">
-        <div><span class="a-eyebrow">MIGRACIÓN ASTIAN CLOUD</span><h2>Contratos antes que pantallas</h2></div>
-        <p class="a-lede">El núcleo permanece reutilizable y los patrones de almacenamiento viven en <code>@goastian/astian-ui/cloud</code>. Todos reciben estado y emiten intención; ninguno conoce Axios, Pinia, cifrado ni transporte.</p>
-      </div>
-
-      <div class="design-system-page__migration-note" role="note">
-        <AIcon name="difference" size="large" />
-        <div>
-          <strong>Equivalencia con el Skiff UI original</strong>
-          <p><code>Dialog</code>, <code>Dropdown</code>, <code>Select</code>, <code>CircularProgress</code>, <code>Surface</code> y <code>Portal</code> aportaron referencias conceptuales. El shell, tablas, uploads y patrones Cloud no tenían equivalentes públicos directos; se diseñaron como contratos Vue nuevos sin modificar React.</p>
-        </div>
-      </div>
-
-      <div class="design-system-page__contract-grid">
-        <ASurface level="l2" class="design-system-page__contract-panel">
-          <div class="design-system-page__contract-heading">
-            <div><span class="a-eyebrow">P0 / CORE</span><h3>Fundamentos de migración</h3></div>
-            <AMonoTag :label="`${migrationFoundations.length} familias`" color="green" />
-          </div>
-          <div class="design-system-page__contract-list">
-            <article v-for="component in migrationFoundations" :key="component.name">
-              <code>{{ component.name }}</code>
-              <strong>{{ component.purpose }}</strong>
-              <p>{{ component.contract }}</p>
-            </article>
-          </div>
-        </ASurface>
-
-        <ASurface level="l2" class="design-system-page__contract-panel">
-          <div class="design-system-page__contract-heading">
-            <div><span class="a-eyebrow">P1 / CLOUD</span><h3>Patrones del producto</h3></div>
-            <AMonoTag label="./cloud" color="blue" />
-          </div>
-          <div class="design-system-page__contract-list">
-            <article v-for="component in cloudPatterns" :key="component.name">
-              <code>{{ component.name }}</code>
-              <strong>{{ component.purpose }}</strong>
-              <p>API presentacional controlada, estados explícitos y acciones por eventos.</p>
-            </article>
-          </div>
-        </ASurface>
-      </div>
-
-      <router-link class="design-system-page__cloud-link" to="/cloud">
-        Probar la composición de referencia de Astian Cloud
-        <AIcon name="arrow_forward" />
-      </router-link>
-    </section>
-
-    <ADialog v-model="dialogOpen" title="Una decisión compartida" description="Este patrón funciona para confirmaciones y edición breve sin sacar a la persona de su contexto." icon="hub" type="confirm">
-      <ATypography tone="secondary">Los componentes se publicarán desde <AMonoTag label="@goastian/astian-ui" /> y cada producto podrá adoptar la base a su ritmo.</ATypography>
-      <template #actions><AButton label="Cancelar" type="tertiary" @click="dialogOpen = false" /><AButton label="Entendido" @click="dialogOpen = false; showNotification()" /></template>
-    </ADialog>
-    <AToast v-model="toastVisible" title="Componente controlado" body="AToast convive con el servicio global de notificaciones." icon="check_circle" :actions="[{ label: 'Cerrar', action: () => toastVisible = false }]" />
-  </q-page>
+    <div id="ui-command-results" class="ui-catalog__command-results" role="listbox" aria-label="Componentes">
+      <button
+        v-for="(result, index) in searchResults"
+        :id="`ui-command-result-${index}`"
+        :key="result.name"
+        type="button"
+        role="option"
+        :aria-selected="activeResultIndex === index"
+        :tabindex="-1"
+        @mousemove="activeResultIndex = index"
+        @click="selectCatalogEntry(result)"
+      >
+        <code>{{ result.name }}</code>
+        <span>{{ result.summary }}</span>
+        <small>{{ result.importPath }}</small>
+      </button>
+      <p v-if="searchResults.length === 0" class="ui-catalog__command-empty">No hay coincidencias. Prueba con otra función.</p>
+    </div>
+  </dialog>
 </template>
 
 <style scoped>
-.design-system-page__hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, .72fr); gap: clamp(28px, 6vw, 90px); align-items: end; min-height: calc(84dvh - 66px); }.design-system-page__hero em { color: var(--a-primary); font-style: normal; }.design-system-page__hero .a-lede { margin: 28px 0; }
-.design-system-page__manifesto { margin-bottom: 6vh; transform: rotate(1.4deg); }.design-system-page__manifesto blockquote { margin: 44px 0 32px; font-size: clamp(1.5rem, 2.4vw, 2.25rem); line-height: 1.2; letter-spacing: -.035em; }.design-system-page__manifesto-meta { display: flex; gap: 14px; align-items: center; color: var(--a-text-secondary); font-size: .78rem; }
-.design-system-page__type { grid-column: span 7; display: grid; gap: 24px; align-content: space-between; min-height: 330px; }.design-system-page__colors { grid-column: span 5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }.design-system-page__swatch { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: center; padding: 9px; border-radius: 10px; background: var(--a-bg-muted); }.design-system-page__swatch > span { display: block; height: 52px; border-radius: 8px; background: var(--swatch, var(--a-primary)); }.design-system-page__swatch div { display: grid; min-width: 0; }.design-system-page__swatch strong { font: .72rem var(--a-font-mono); }.design-system-page__swatch small { color: var(--a-text-tertiary); font-size: .62rem; }.design-system-page__swatch--accent { --swatch: var(--a-accent); }.design-system-page__swatch--positive { --swatch: var(--a-positive); }.design-system-page__swatch--info { --swatch: var(--a-info); }.design-system-page__swatch--warning { --swatch: var(--a-warning); }.design-system-page__swatch--negative { --swatch: var(--a-negative); }
-.design-system-page__showcase { display: grid; gap: 20px; }.design-system-page__row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }.design-system-page__form { grid-column: span 7; display: grid; gap: 16px; }.design-system-page__verification { grid-column: span 5; display: grid; gap: 16px; align-content: start; }.design-system-page__date-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-space-3); }.design-system-page__stepper { margin-top: var(--a-space-4); }.design-system-page__progress { display: flex; gap: 13px; align-items: center; margin-top: 10px; padding-top: 18px; border-top: 1px solid var(--a-border); }.design-system-page__progress div { display: grid; }.design-system-page__progress small { color: var(--a-text-secondary); }.design-system-page__skeletons { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; max-width: 430px; }.design-system-page__skeletons > div { display: grid; gap: 8px; }.design-system-page__overlay-demo { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }.design-system-page__tooltip-trigger { border-bottom: 1px dashed var(--a-border-strong); color: var(--a-text-secondary); font-size: .82rem; cursor: help; }
-.design-system-page__api-sample { grid-column: span 4; display: grid; gap: 20px; align-content: start; }.design-system-page__portal-note { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--a-text-secondary); font-size: .78rem; }.design-system-page__parity { grid-column: span 8; overflow: hidden; }.design-system-page__parity-header,.design-system-page__parity-row { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 12px; align-items: center; }.design-system-page__parity-header { padding: 18px 20px; border-bottom: 1px solid var(--a-border); }.design-system-page__parity-list { max-height: 430px; overflow: auto; }.design-system-page__parity-row { min-height: 43px; padding: 7px 20px; border-bottom: 1px solid var(--a-border); font-size: .75rem; }.design-system-page__parity-row:last-child { border: 0; }.design-system-page__parity-row span { color: var(--a-text-secondary); }
-.design-system-page__migration-note { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--a-space-4); align-items: start; margin-bottom: var(--a-space-5); padding: var(--a-space-4); border: var(--a-border-width) solid var(--a-border); border-radius: var(--a-radius-md); background: var(--a-bg-muted); color: var(--a-text-secondary); }.design-system-page__migration-note > :deep(.a-icon) { color: var(--a-primary); }.design-system-page__migration-note strong { color: var(--a-text-primary); }.design-system-page__migration-note p { max-width: var(--a-layout-copy); margin: var(--a-space-1) var(--a-space-0) var(--a-space-0); }.design-system-page__migration-note code,.design-system-page__contract-list code,.design-system-page__cloud-link { font-family: var(--a-font-mono); }
-.design-system-page__contract-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-space-4); }.design-system-page__contract-panel { min-width: 0; }.design-system-page__contract-heading { display: flex; gap: var(--a-space-4); align-items: start; justify-content: space-between; margin-bottom: var(--a-space-4); }.design-system-page__contract-heading h3 { margin: var(--a-space-2) var(--a-space-0) var(--a-space-0); font-size: var(--a-font-size-xl); }.design-system-page__contract-list { display: grid; gap: var(--a-space-2); }.design-system-page__contract-list article { display: grid; gap: var(--a-space-1); padding: var(--a-space-3); border: var(--a-border-width) solid var(--a-border); border-radius: var(--a-radius-sm); background: var(--a-bg-surface); }.design-system-page__contract-list code { color: var(--a-primary); font-size: var(--a-font-size-xs); font-weight: var(--a-font-weight-bold); overflow-wrap: anywhere; }.design-system-page__contract-list strong { font-size: var(--a-font-size-sm); }.design-system-page__contract-list p { margin: var(--a-space-0); color: var(--a-text-secondary); font-size: var(--a-font-size-xs); line-height: var(--a-line-height-body); }
-.design-system-page__cloud-link { display: inline-flex; min-height: var(--a-target-min); gap: var(--a-space-2); align-items: center; margin-top: var(--a-space-5); padding: var(--a-space-2) var(--a-space-4); border-radius: var(--a-radius-sm); background: var(--a-primary); color: var(--a-text-inverse); font-size: var(--a-font-size-sm); font-weight: var(--a-font-weight-bold); text-decoration: none; }
-@media (max-width: 900px) { .design-system-page__hero { grid-template-columns: 1fr; min-height: auto; }.design-system-page__manifesto { margin: 0; transform: none; }.design-system-page__type,.design-system-page__colors,.design-system-page__form,.design-system-page__verification { grid-column: 1 / -1; } }
-@media (max-width: 900px) { .design-system-page__api-sample,.design-system-page__parity { grid-column: 1 / -1; }.design-system-page__contract-grid { grid-template-columns: 1fr; } }
-@media (max-width: 560px) { .design-system-page__colors,.design-system-page__date-fields { grid-template-columns: 1fr; }.design-system-page__row :deep(.a-button) { width: 100%; }.design-system-page__manifesto blockquote { margin-top: 28px; }.design-system-page__parity-header,.design-system-page__parity-row { grid-template-columns: 1fr auto; }.design-system-page__parity-row > span { grid-column: 1 / -1; grid-row: 2; } }
+/* Hallmark · genre: modern-minimal · macrostructure: Component Playground · design-system: design.md · designed-as-app */
+.ui-catalog {
+  width: min(100%, 78rem);
+  margin-inline: auto;
+  padding: var(--a-space-8) clamp(var(--a-space-4), 4vw, var(--a-space-10)) var(--a-space-6);
+  color: var(--a-text-primary);
+}
+
+.ui-catalog__intro {
+  display: grid;
+  gap: var(--a-space-5);
+  padding-block-end: var(--a-space-8);
+  border-bottom: var(--a-border-width) solid var(--a-border);
+}
+
+.ui-catalog__version,
+.ui-catalog__intro-copy,
+.ui-catalog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--a-space-3);
+}
+
+.ui-catalog__version {
+  justify-content: flex-start;
+  color: var(--a-text-tertiary);
+  font-size: var(--a-font-size-xs);
+}
+
+.ui-catalog__version code {
+  padding: var(--a-space-1) var(--a-space-2);
+  border: var(--a-border-width) solid var(--a-border);
+  border-radius: var(--a-radius-xs);
+  font-family: var(--a-font-mono);
+}
+
+.ui-catalog__intro-copy {
+  align-items: end;
+}
+
+.ui-catalog__intro-copy > div {
+  min-width: 0;
+}
+
+.ui-catalog__intro h1,
+.ui-catalog__intro p,
+.ui-catalog__quickstart h2,
+.ui-catalog__quickstart p,
+.ui-catalog__command-header h2,
+.ui-catalog__command-header p {
+  margin: var(--a-space-0);
+}
+
+.ui-catalog__intro h1 {
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  line-height: var(--a-line-height-tight);
+  letter-spacing: var(--a-letter-spacing-display);
+}
+
+.ui-catalog__intro p {
+  max-width: var(--a-layout-copy);
+  margin-block-start: var(--a-space-3);
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-md);
+  line-height: var(--a-line-height-body);
+}
+
+.ui-catalog__search-trigger,
+.ui-catalog__snippets button,
+.ui-catalog__tabs button,
+.ui-catalog__command-header button,
+.ui-catalog__command-results button {
+  min-height: var(--a-target-min);
+  border: var(--a-border-width) solid var(--a-border);
+  background: var(--a-bg-raised);
+  color: var(--a-text-primary);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ui-catalog__search-trigger {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--a-space-4);
+  justify-content: space-between;
+  min-width: min(100%, 15rem);
+  padding-inline: var(--a-space-4);
+  border-color: var(--a-border-strong);
+  border-radius: var(--a-radius-round);
+  font-size: var(--a-font-size-sm);
+  font-weight: var(--a-font-weight-semibold);
+}
+
+.ui-catalog__search-trigger kbd,
+.ui-catalog__command-search kbd {
+  color: var(--a-text-tertiary);
+  font: var(--a-font-size-xs)/1 var(--a-font-mono);
+}
+
+.ui-catalog__search-trigger:hover,
+.ui-catalog__snippets button:hover,
+.ui-catalog__tabs button:hover,
+.ui-catalog__command-header button:hover,
+.ui-catalog__command-results button:hover {
+  background: var(--a-bg-hover);
+}
+
+.ui-catalog__search-trigger:focus-visible,
+.ui-catalog__snippets button:focus-visible,
+.ui-catalog__tabs button:focus-visible,
+.ui-catalog__panel:focus-visible,
+.ui-catalog__command-header button:focus-visible,
+.ui-catalog__command-search input:focus-visible,
+.ui-catalog__command-results button:focus-visible {
+  outline: var(--a-border-width-strong) solid var(--a-focus-ring);
+  outline-offset: var(--a-space-1);
+}
+
+.ui-catalog__quickstart {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.72fr) minmax(0, 1.28fr);
+  gap: var(--a-space-6);
+  align-items: start;
+  padding-block: var(--a-space-6);
+  border-bottom: var(--a-border-width) solid var(--a-border);
+}
+
+.ui-catalog__quickstart h2 {
+  font-size: var(--a-font-size-md);
+}
+
+.ui-catalog__quickstart p {
+  max-width: 34rem;
+  margin-block-start: var(--a-space-2);
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-sm);
+  line-height: var(--a-line-height-body);
+}
+
+.ui-catalog__snippets {
+  display: grid;
+  gap: var(--a-space-2);
+  min-width: 0;
+}
+
+.ui-catalog__snippets button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--a-space-3);
+  width: 100%;
+  padding: var(--a-space-2) var(--a-space-3);
+  border-radius: var(--a-radius-xs);
+  text-align: start;
+}
+
+.ui-catalog__snippets code {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--a-text-secondary);
+  font: var(--a-font-size-xs)/var(--a-line-height-body) var(--a-font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-catalog__snippets span {
+  color: var(--a-text-primary);
+  font-size: var(--a-font-size-xs);
+  font-weight: var(--a-font-weight-semibold);
+}
+
+.ui-catalog__tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: var(--a-border-width) solid var(--a-border);
+}
+
+.ui-catalog__tabs button {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--a-space-2);
+  padding-inline: var(--a-space-2);
+  border: 0;
+  border-bottom: var(--a-border-width-strong) solid transparent;
+  background: transparent;
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-sm);
+}
+
+.ui-catalog__tabs button[aria-selected='true'] {
+  border-bottom-color: var(--a-text-primary);
+  color: var(--a-text-primary);
+  font-weight: var(--a-font-weight-semibold);
+}
+
+.ui-catalog__tabs small {
+  color: var(--a-text-tertiary);
+  font: var(--a-font-size-xs)/1 var(--a-font-mono);
+}
+
+.ui-catalog__panel {
+  min-width: 0;
+  min-height: 24rem;
+  padding-block: var(--a-space-6);
+  scroll-margin-block-start: var(--a-layout-header);
+}
+
+.ui-catalog__footer {
+  flex-wrap: wrap;
+  padding-block-start: var(--a-space-5);
+  border-top: var(--a-border-width) solid var(--a-border);
+  color: var(--a-text-tertiary);
+  font-size: var(--a-font-size-xs);
+}
+
+.ui-catalog__command-dialog {
+  width: min(42rem, calc(100vw - var(--a-space-8)));
+  max-width: none;
+  max-height: min(44rem, calc(100dvh - var(--a-space-8)));
+  margin: auto;
+  padding: var(--a-space-0);
+  overflow: hidden;
+  border: var(--a-border-width) solid var(--a-border-strong);
+  border-radius: var(--a-radius-md);
+  background: var(--a-bg-raised);
+  color: var(--a-text-primary);
+  box-shadow: var(--a-shadow-2);
+}
+
+.ui-catalog__command-dialog::backdrop {
+  background: var(--a-bg-scrim);
+}
+
+.ui-catalog__command-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--a-space-4);
+  padding: var(--a-space-4);
+  border-bottom: var(--a-border-width) solid var(--a-border);
+}
+
+.ui-catalog__command-header h2 {
+  font-size: var(--a-font-size-lg);
+  letter-spacing: var(--a-letter-spacing-heading);
+}
+
+.ui-catalog__command-header p {
+  margin-block-start: var(--a-space-1);
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-xs);
+}
+
+.ui-catalog__command-header button {
+  padding-inline: var(--a-space-3);
+  border-radius: var(--a-radius-xs);
+  font-size: var(--a-font-size-xs);
+}
+
+.ui-catalog__command-search {
+  position: relative;
+  display: block;
+  padding: var(--a-space-3) var(--a-space-4);
+  border-bottom: var(--a-border-width) solid var(--a-border);
+}
+
+.ui-catalog__command-search input {
+  width: 100%;
+  min-height: var(--a-target-min);
+  padding-inline: var(--a-space-3) var(--a-space-10);
+  border: var(--a-border-width) solid var(--a-border-strong);
+  border-radius: var(--a-radius-sm);
+  background: var(--a-bg-surface);
+  color: var(--a-text-primary);
+  font: var(--a-font-size-md)/1 var(--a-font-sans);
+}
+
+.ui-catalog__command-search input::placeholder {
+  color: var(--a-text-tertiary);
+}
+
+.ui-catalog__command-search kbd {
+  position: absolute;
+  inset-inline-end: calc(var(--a-space-4) + var(--a-space-3));
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ui-catalog__command-results {
+  max-height: min(27rem, 55dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--a-space-2);
+}
+
+.ui-catalog__command-results button {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.55fr) minmax(12rem, 1fr);
+  gap: var(--a-space-1) var(--a-space-3);
+  width: 100%;
+  padding: var(--a-space-3);
+  border-color: transparent;
+  border-radius: var(--a-radius-xs);
+  text-align: start;
+}
+
+.ui-catalog__command-results button[aria-selected='true'] {
+  background: var(--a-bg-selected);
+}
+
+.ui-catalog__command-results code {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--a-text-primary);
+  font: var(--a-font-size-sm)/1 var(--a-font-mono);
+}
+
+.ui-catalog__command-results span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-catalog__command-results small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--a-text-tertiary);
+  font: var(--a-font-size-xs)/1 var(--a-font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-catalog__command-empty {
+  margin: var(--a-space-0);
+  padding: var(--a-space-8) var(--a-space-4);
+  color: var(--a-text-secondary);
+  font-size: var(--a-font-size-sm);
+  text-align: center;
+}
+
+.ui-catalog__sr-only {
+  position: absolute;
+  width: var(--a-border-width);
+  height: var(--a-border-width);
+  margin: calc(var(--a-border-width) * -1);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 48rem) {
+  .ui-catalog {
+    padding-block-start: var(--a-space-6);
+  }
+
+  .ui-catalog__intro-copy,
+  .ui-catalog__quickstart {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ui-catalog__search-trigger {
+    width: 100%;
+  }
+}
+
+@media (max-width: 30rem) {
+  .ui-catalog {
+    padding-inline: var(--a-space-4);
+  }
+
+  .ui-catalog__version {
+    flex-wrap: wrap;
+  }
+
+  .ui-catalog__tabs button {
+    gap: var(--a-space-1);
+    font-size: var(--a-font-size-xs);
+  }
+
+  .ui-catalog__command-dialog {
+    width: calc(100vw - var(--a-space-4));
+    max-height: calc(100dvh - var(--a-space-4));
+  }
+
+  .ui-catalog__command-results button {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-catalog__command-results code {
+    grid-row: auto;
+  }
+}
 </style>

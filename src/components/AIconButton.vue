@@ -27,13 +27,17 @@ defineEmits<{ click: [event: Event] }>()
 </template>
 
 <style scoped>
-.a-icon-button { min-width: var(--a-target-min); min-height: var(--a-target-min); color: var(--a-text-secondary); transition: transform var(--a-motion-fast), background var(--a-motion-fast), color var(--a-motion-fast); }
-.a-icon-button:hover { color: var(--a-text-primary); background: var(--a-bg-hover); transform: translateY(-1px); }
-.a-icon-button:active { transform: translateY(1px) scale(.96); }
+.a-icon-button { min-width: var(--a-target-min); min-height: var(--a-target-min); color: var(--a-text-secondary); transition: background var(--a-motion-fast), color var(--a-motion-fast); }
+.a-icon-button:hover { color: var(--a-text-primary); background: var(--a-bg-hover); }
+.a-icon-button:active { transform: translateY(var(--a-border-width)); }
 .a-icon-button--small { font-size: var(--a-font-size-xs); }
 .a-icon-button--medium { font-size: var(--a-font-size-sm); }
 .a-icon-button--large { min-width: var(--a-control-lg); min-height: var(--a-control-lg); font-size: var(--a-font-size-md); }
 .a-icon-button--filled { background: var(--a-bg-muted); }
 .a-icon-button--primary { color: var(--a-primary); }
 .a-icon-button--destructive { color: var(--a-negative); }
+
+@media (prefers-reduced-motion: reduce) {
+  .a-icon-button:active { transform: none; }
+}
 </style>

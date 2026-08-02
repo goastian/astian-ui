@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue'
 
 import {
   ACloudPageHeader,
@@ -15,14 +15,9 @@ import type {
   ACloudItem,
   ACloudSortOption
 } from '@/cloud'
-import {
-  ABreadcrumbs,
-  AButton,
-  AContextMenu,
-  ADrawer,
-  AFileUpload,
-  AUploadQueue
-} from '@/components'
+import ABreadcrumbs from '@/components/ABreadcrumbs.vue'
+import AButton from '@/components/AButton.vue'
+import AContextMenu from '@/components/AContextMenu.vue'
 import type {
   ABreadcrumbItem,
   AContextMenuItem,
@@ -31,6 +26,10 @@ import type {
   AUploadQueueItem,
   AUploadStatus
 } from '@/types/core'
+
+const ADrawer = defineAsyncComponent(() => import('@/components/ADrawer.vue'))
+const AFileUpload = defineAsyncComponent(() => import('@/components/AFileUpload.vue'))
+const AUploadQueue = defineAsyncComponent(() => import('@/components/AUploadQueue.vue'))
 
 const search = ref('')
 const view = ref<'grid' | 'list'>('grid')
@@ -45,6 +44,7 @@ const queue = ref<AUploadQueueItem[]>([])
 const announcement = ref('')
 const dropTarget = ref<ACloudDropTarget | null>(null)
 const dropState = ref<ACloudDropState>('idle')
+let dropResetTimer: ReturnType<typeof globalThis.setTimeout> | undefined
 
 const breadcrumbs: ABreadcrumbItem[] = [
   { id: 'cloud', label: 'Cloud', to: '/cloud' },
@@ -202,10 +202,12 @@ const requestDrop = (payload: ACloudDragPayload) => {
   dropState.value = 'pending'
   announcement.value = `Validando ${payload.effect === 'copy' ? 'copia' : 'movimiento'} de ${payload.sourceIds.length} elemento(s)`
 
-  window.setTimeout(() => {
+  if (dropResetTimer) globalThis.clearTimeout(dropResetTimer)
+  dropResetTimer = globalThis.setTimeout(() => {
     dropTarget.value = null
     dropState.value = 'idle'
     announcement.value = 'La referencia validó la intención sin modificar la colección'
+    dropResetTimer = undefined
   }, 700)
 }
 
@@ -257,10 +259,14 @@ const enqueue = (payload: { files: readonly File[]; url?: string }) => {
   uploadUrl.value = ''
   announcement.value = `${fromFiles.length + fromUrl.length} elemento(s) añadido(s) a la cola`
 }
+
+onBeforeUnmount(() => {
+  if (dropResetTimer) globalThis.clearTimeout(dropResetTimer)
+})
 </script>
 
 <template>
-  <q-page class="a-page cloud-page">
+  <main class="a-page cloud-page" aria-label="Astian Cloud">
     <ACloudPageHeader
       context="Astian Cloud / Archivos"
       title="Tu espacio de trabajo"
@@ -279,90 +285,93 @@ const enqueue = (payload: { files: readonly File[]; url?: string }) => {
       />
     </ACloudPageHeader>
 
-    <section class="cloud-page__stats" aria-label="Resumen del espacio">
-      <AStatCard
-        label="Almacenamiento"
-        value="8,7 GB"
-        detail="16,3 GB disponibles"
-        icon="cloud"
-        :progress="34.8"
-      />
-      <AStatCard
-        label="Actividad"
-        value="27 cambios"
-        detail="Esta semana, 11 compartidos"
-        icon="history"
-        status="info"
-        trend-label="8 más que la semana pasada"
-      />
-      <AStatCard
-        label="Equipo"
-        value="3 personas"
-        detail="Activas ahora"
-        icon="group"
-        status="positive"
-      />
-    </section>
-
-    <section class="cloud-page__collection" aria-labelledby="cloud-recents-title">
-      <div class="cloud-page__section-title">
-        <div>
-          <h2 id="cloud-recents-title">Recientes</h2>
-          <p>Archivos que abriste o editaste</p>
+    <div class="cloud-page__workbench">
+      <section class="cloud-page__collection" aria-labelledby="cloud-recents-title">
+        <div class="cloud-page__section-title">
+          <div>
+            <h2 id="cloud-recents-title">Recientes</h2>
+            <p>Archivos que abriste o editaste</p>
+          </div>
+          <span>{{ selectedIds.length }} seleccionados</span>
         </div>
-        <span>{{ selectedIds.length }} seleccionados</span>
-      </div>
 
-      <AContextMenu :items="contextActions" @select="applyContextAction">
-        <AFileGrid
-          v-if="view === 'grid'"
-          v-model:selected-ids="selectedIds"
-          v-model:active-id="activeId"
-          :items="normalizedItems"
-          :state="normalizedItems.length ? 'ready' : 'empty'"
-          selection-interaction="marquee"
-          dnd
-          source-container-id="root"
-          :drop-target="dropTarget"
-          :drop-state="dropState"
-          @open="openItem"
-          @menu="showItemMenu"
-          @favorite="(item, favorite) => items = items.map((entry) => entry.id === item.id ? { ...entry, favorite } : entry)"
-          @drop-target-change="updateDropTarget"
-          @drop-request="requestDrop"
-          @move-request="requestMove"
-        >
-          <template #empty-actions>
-            <AButton label="Añadir archivo" icon="add" @click="uploadOpen = true" />
-          </template>
-        </AFileGrid>
-        <AFileTable
-          v-else
-          v-model:selected-ids="selectedIds"
-          v-model:active-id="activeId"
-          v-model:sort="tableSort"
-          :items="normalizedItems"
-          :state="normalizedItems.length ? 'ready' : 'empty'"
-          dnd
-          source-container-id="root"
-          :drop-target="dropTarget"
-          :drop-state="dropState"
-          @open="openItem"
-          @menu="showItemMenu"
-          @drop-target-change="updateDropTarget"
-          @drop-request="requestDrop"
-          @move-request="requestMove"
-        >
-          <template #empty>
-            <AButton label="Añadir archivo" icon="add" @click="uploadOpen = true" />
-          </template>
-        </AFileTable>
-      </AContextMenu>
-    </section>
+        <AContextMenu :items="contextActions" @select="applyContextAction">
+          <AFileGrid
+            v-if="view === 'grid'"
+            v-model:selected-ids="selectedIds"
+            v-model:active-id="activeId"
+            :items="normalizedItems"
+            :state="normalizedItems.length ? 'ready' : 'empty'"
+            selection-interaction="marquee"
+            dnd
+            source-container-id="root"
+            :drop-target="dropTarget"
+            :drop-state="dropState"
+            @open="openItem"
+            @menu="showItemMenu"
+            @favorite="(item, favorite) => items = items.map((entry) => entry.id === item.id ? { ...entry, favorite } : entry)"
+            @drop-target-change="updateDropTarget"
+            @drop-request="requestDrop"
+            @move-request="requestMove"
+          >
+            <template #empty-actions>
+              <AButton label="Añadir archivo" icon="add" @click="uploadOpen = true" />
+            </template>
+          </AFileGrid>
+          <AFileTable
+            v-else
+            v-model:selected-ids="selectedIds"
+            v-model:active-id="activeId"
+            v-model:sort="tableSort"
+            :items="normalizedItems"
+            :state="normalizedItems.length ? 'ready' : 'empty'"
+            dnd
+            source-container-id="root"
+            :drop-target="dropTarget"
+            :drop-state="dropState"
+            @open="openItem"
+            @menu="showItemMenu"
+            @drop-target-change="updateDropTarget"
+            @drop-request="requestDrop"
+            @move-request="requestMove"
+          >
+            <template #empty>
+              <AButton label="Añadir archivo" icon="add" @click="uploadOpen = true" />
+            </template>
+          </AFileTable>
+        </AContextMenu>
+      </section>
+
+      <aside class="cloud-page__stats" aria-label="Resumen del espacio">
+        <AStatCard
+          label="Almacenamiento"
+          value="8,7 GB"
+          detail="16,3 GB disponibles"
+          icon="cloud"
+          :progress="34.8"
+        />
+        <AStatCard
+          label="Actividad"
+          value="27 cambios"
+          detail="Esta semana, 11 compartidos"
+          icon="history"
+          status="info"
+          trend-label="8 más que la semana pasada"
+        />
+        <AStatCard
+          label="Equipo"
+          value="3 personas"
+          detail="Activas ahora"
+          icon="group"
+          status="positive"
+        />
+      </aside>
+    </div>
 
     <p class="a-visually-hidden" aria-live="polite">{{ announcement }}</p>
 
     <ADrawer
+      v-if="uploadOpen"
       v-model="uploadOpen"
       title="Añadir a Astian Cloud"
       description="Astian UI valida y presenta; Astian Cloud decide cómo transportar y cifrar."
@@ -391,27 +400,99 @@ const enqueue = (payload: { files: readonly File[]; url?: string }) => {
         @clear-completed="queue = queue.filter((item) => item.status !== 'success')"
       />
     </ADrawer>
-  </q-page>
+  </main>
 </template>
 
 <style scoped>
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app */
+.cloud-page {
+  min-width: var(--a-space-0);
+  padding-block-end: var(--space-xl);
+}
+
+.cloud-page :deep(.a-cloud-page-header) {
+  gap: var(--space-sm);
+  padding-block: var(--space-lg) var(--space-md);
+}
+
+.cloud-page :deep(.a-cloud-page-header__context) {
+  gap: var(--space-xs);
+}
+
+.cloud-page :deep(.a-cloud-page-header__title) {
+  align-items: center;
+}
+
+.cloud-page :deep(.a-cloud-page-header h1) {
+  max-width: none;
+  font-size: var(--text-2xl);
+  font-weight: var(--a-font-weight-medium);
+  letter-spacing: var(--a-letter-spacing-heading);
+}
+
+.cloud-page :deep(.a-cloud-page-header p) {
+  margin-block-start: var(--space-xs);
+  font-size: var(--text-sm);
+}
+
+.cloud-page :deep(.a-cloud-toolbar) {
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+  border: var(--a-border-width) solid var(--a-border);
+  border-radius: var(--radius-lg);
+  background: var(--a-bg-surface);
+}
+
+.cloud-page__workbench {
+  display: grid;
+  grid-template-columns: minmax(var(--a-space-0), 1fr) var(--a-layout-nav);
+  gap: var(--space-xl);
+  align-items: start;
+  padding-block-start: var(--space-md);
+}
+
 .cloud-page__stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--a-space-3);
-  padding-block: var(--a-space-4) var(--a-space-10);
+  position: sticky;
+  top: calc(var(--a-layout-header) + var(--space-lg));
+  gap: var(--space-lg);
+  min-width: var(--a-space-0);
+  padding-inline-start: var(--space-lg);
+  border-inline-start: var(--a-border-width) solid var(--a-border);
+}
+
+.cloud-page__stats :deep(.a-stat-card) {
+  gap: var(--space-xs);
+  min-height: var(--a-space-0);
+  padding: var(--a-space-0) var(--a-space-0) var(--space-lg);
+  border: var(--a-space-0);
+  border-bottom: var(--a-border-width) solid var(--a-border);
+  border-radius: var(--a-space-0);
+  background: transparent;
+}
+
+.cloud-page__stats :deep(.a-stat-card__value) {
+  font-size: var(--text-xl);
+}
+
+.cloud-page__stats :deep(.a-stat-card__icon) {
+  width: var(--a-target-min);
+  height: var(--a-target-min);
 }
 
 .cloud-page__collection {
   display: grid;
-  gap: var(--a-space-4);
+  gap: var(--space-md);
+  min-width: var(--a-space-0);
 }
 
 .cloud-page__section-title {
   display: flex;
-  gap: var(--a-space-4);
+  gap: var(--space-md);
   align-items: end;
   justify-content: space-between;
+  padding-block-end: var(--space-sm);
+  border-block-end: var(--a-border-width) solid var(--a-border);
 }
 
 .cloud-page__section-title h2,
@@ -420,48 +501,80 @@ const enqueue = (payload: { files: readonly File[]; url?: string }) => {
 }
 
 .cloud-page__section-title h2 {
-  font-size: var(--a-font-size-xl);
+  font-size: var(--text-lg);
+  font-weight: var(--a-font-weight-semibold);
   letter-spacing: var(--a-letter-spacing-heading);
 }
 
 .cloud-page__section-title p,
 .cloud-page__section-title > span {
   color: var(--a-text-secondary);
-  font-size: var(--a-font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .cloud-page__section-title p {
-  margin-top: var(--a-space-1);
+  margin-top: var(--space-2xs);
+}
+
+.cloud-page__section-title > span {
+  flex: none;
+  font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
 .cloud-page__queue {
-  margin-top: var(--a-space-6);
-  padding-top: var(--a-space-6);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
   border-top: var(--a-border-width) solid var(--a-border);
 }
 
-@media (max-width: 56rem) {
-  .cloud-page__stats {
-    grid-template-columns: 1fr 1fr;
+@media (max-width: 72rem) {
+  .cloud-page__workbench {
+    grid-template-columns: minmax(var(--a-space-0), 1fr);
+    gap: var(--space-xl);
   }
 
-  .cloud-page__stats > :first-child {
-    grid-column: 1 / -1;
+  .cloud-page__stats {
+    position: static;
+    grid-template-columns: repeat(3, minmax(var(--a-space-0), 1fr));
+    gap: var(--space-md);
+    padding-block-start: var(--space-lg);
+    padding-inline-start: var(--a-space-0);
+    border-block-start: var(--a-border-width) solid var(--a-border);
+    border-inline-start: var(--a-space-0);
+  }
+}
+
+@media (max-width: 48rem) {
+  .cloud-page :deep(.a-cloud-page-header__title) {
+    align-items: stretch;
+  }
+
+  .cloud-page__stats {
+    grid-template-columns: minmax(var(--a-space-0), 1fr);
   }
 }
 
 @media (max-width: 36rem) {
-  .cloud-page__stats {
-    grid-template-columns: 1fr;
+  .cloud-page :deep(.a-cloud-page-header h1) {
+    overflow-wrap: anywhere;
   }
 
-  .cloud-page__stats > :first-child {
-    grid-column: auto;
+  .cloud-page__workbench {
+    gap: var(--space-lg);
   }
 
   .cloud-page__section-title {
     align-items: start;
     flex-direction: column;
+    gap: var(--space-xs);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud-page :deep(.a-file-card:hover),
+  .cloud-page :deep(.a-file-card:active) {
+    transform: none;
   }
 }
 </style>

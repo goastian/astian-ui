@@ -1,25 +1,26 @@
 # Astian UI
 
-Sistema de diseño de AstianGO, Astian Cloud, Calendar, Midori y futuros productos
-Astian. El paquete `@goastian/astian-ui` está construido con Vue 3, Quasar y
+The design system for AstianGO, Astian Cloud, Calendar, Midori, and future Astian
+products. The `@goastian/astian-ui` package is built with Vue 3, Quasar, and
 TypeScript.
 
-La documentación describe la superficie disponible en este repositorio. No
-implica que una versión nueva ya haya sido publicada en npm.
+This documentation describes the surface available in this repository. It does
+not imply that a new version has already been published to npm.
 
-## Requisitos
+## Requirements
 
 - Vue `^3.5.0`.
-- Quasar `^2.16.0` para la entrada convencional y los patrones Cloud. Es un
-  peer opcional para los subpaths nativos de formularios y marketing.
-- Node `^20.19.0` o `>=22.12.0` para desarrollar y construir el paquete.
-- Una única instalación de Quasar en el punto de entrada cuando el producto
-  consume `@goastian/astian-ui` o `@goastian/astian-ui/cloud`.
+- Quasar `^2.16.0` for the conventional entrypoint and Cloud patterns. It is an
+  optional peer for the native forms and marketing subpaths.
+- Node `^20.19.0` or `>=22.12.0` to develop and build the package.
+- A single Quasar installation at the entrypoint when the product consumes
+  `@goastian/astian-ui` or `@goastian/astian-ui/cloud`.
 
-Quasar es una dependencia peer: Astian UI puede usarlo internamente, pero ningún
-componente `Q*`, ref interna o detalle de su DOM forma parte del contrato público.
+Quasar is a peer dependency: Astian UI may use it internally, but no `Q*`
+component, internal ref, or DOM implementation detail is part of the public
+contract.
 
-## Desarrollo local
+## Local development
 
 ```bash
 cd astian-ui
@@ -27,58 +28,58 @@ npm install
 npm run dev
 ```
 
-Validación de producción:
+Production validation:
 
 ```bash
 npm run build
 ```
 
-El build genera `dist` para las aplicaciones de referencia y `dist-lib` para el
-paquete reutilizable en ESM, CommonJS, CSS y declaraciones TypeScript.
+The build generates `dist` for the reference applications and `dist-lib` for the
+reusable ESM, CommonJS, CSS, and TypeScript declaration package.
 
-Rutas de referencia:
+Reference routes:
 
-- `/ui`: catálogo interactivo del sistema de diseño.
-- `/astiango`: aplicación base de búsqueda.
-- `/cloud`: aplicación base de archivos.
-- `/calendar`: aplicación base de calendario.
-- `/midori`: aplicación base de navegador.
-- `/marketing-preview`: referencia de navegación, locale y acciones responsive.
+- `/ui`: interactive design-system catalog.
+- `/astiango`: search reference application.
+- `/cloud`: file-management reference application.
+- `/calendar`: calendar reference application.
+- `/midori`: browser reference application.
+- `/marketing-preview`: responsive navigation, locale, and action reference.
 
-## Entradas públicas
+## Public entrypoints
 
-| Import | Contenido |
+| Import | Contents |
 | --- | --- |
-| `@goastian/astian-ui` | Primitivas y patrones reutilizables del núcleo P0, tipos, composables y plugin `AstianUI`. |
-| `@goastian/astian-ui/cloud` | Patrones P1 y tipos propios de Astian Cloud. No se registran globalmente con `AstianUI`. |
-| `@goastian/astian-ui/input` | `AInput` nativo, SSR-safe y sin dependencia de Quasar. |
-| `@goastian/astian-ui/textarea` | `ATextarea` nativo, SSR-safe y sin dependencia de Quasar. |
-| `@goastian/astian-ui/checkbox` | `ACheckbox` nativo, SSR-safe y sin dependencia de Quasar. |
-| `@goastian/astian-ui/button` | `AButton` nativo para formularios, SSR-safe y sin dependencia de Quasar. |
-| `@goastian/astian-ui/marketing-navigation` | `AMarketingNavigation` y sus tipos, sin Vue Router ni Quasar. |
-| `@goastian/astian-ui/locale-switch` | `ALocaleSwitch` con URLs de servidor, `hreflang` y `aria-current`. |
-| `@goastian/astian-ui/marketing-action` | `AMarketingAction` para enlaces nativos o `Link` de Inertia. |
-| `@goastian/astian-ui/base.css` | Tokens y estilos globales mínimos. No incluye componentes ni fuentes. |
-| `@goastian/astian-ui/core.css` | Estilos de las primitivas del núcleo. |
-| `@goastian/astian-ui/cloud.css` | Estilos exclusivos de los patrones Cloud; se usa junto con `base.css` y `core.css`. |
-| `@goastian/astian-ui/forms.css` | Estilos aislados de los cuatro controles nativos. Se usa con `tokens.css`, sin reset global. |
-| `@goastian/astian-ui/marketing.css` | Estilos aislados de navegación, locale y acciones. Se usa con `tokens.css`, sin reset global. |
-| `@goastian/astian-ui/fonts.css` | Material Icons Round y su WOFF2 externo. Es opt-in. |
-| `@goastian/astian-ui/style.css` | Entrada de compatibilidad fontless con base, núcleo y Cloud. Para código nuevo se prefieren las entradas segmentadas. |
-| `@goastian/astian-ui/tokens.css` | Tokens `--a-*` sin el resto de estilos del paquete. |
-| `@goastian/astian-ui/icons/*` | Recursos legacy que el consumidor todavía necesite copiar a su directorio público. |
+| `@goastian/astian-ui` | Reusable P0 core primitives and patterns, types, composables, and the `AstianUI` plugin. |
+| `@goastian/astian-ui/cloud` | P1 Astian Cloud patterns and types. They are not registered globally by `AstianUI`. |
+| `@goastian/astian-ui/input` | Native, SSR-safe `AInput` with no Quasar dependency. |
+| `@goastian/astian-ui/textarea` | Native, SSR-safe `ATextarea` with no Quasar dependency. |
+| `@goastian/astian-ui/checkbox` | Native, SSR-safe `ACheckbox` with no Quasar dependency. |
+| `@goastian/astian-ui/button` | Native, SSR-safe form `AButton` with no Quasar dependency. |
+| `@goastian/astian-ui/marketing-navigation` | `AMarketingNavigation` and its types, without Vue Router or Quasar. |
+| `@goastian/astian-ui/locale-switch` | `ALocaleSwitch` with server-generated URLs, `hreflang`, and `aria-current`. |
+| `@goastian/astian-ui/marketing-action` | `AMarketingAction` for native anchors or Inertia `Link`. |
+| `@goastian/astian-ui/base.css` | Tokens and minimal global styles. It includes neither components nor fonts. |
+| `@goastian/astian-ui/core.css` | Core primitive styles. |
+| `@goastian/astian-ui/cloud.css` | Cloud-pattern-only styles; use with `base.css` and `core.css`. |
+| `@goastian/astian-ui/forms.css` | Isolated styles for the four native controls. Use with `tokens.css`, without a global reset. |
+| `@goastian/astian-ui/marketing.css` | Isolated navigation, locale, and action styles. Use with `tokens.css`, without a global reset. |
+| `@goastian/astian-ui/fonts.css` | Material Icons Round and its external WOFF2 file. Opt-in only. |
+| `@goastian/astian-ui/style.css` | Fontless compatibility entrypoint containing base, core, and Cloud styles. Prefer segmented entrypoints for new code. |
+| `@goastian/astian-ui/tokens.css` | `--a-*` tokens without the rest of the package styles. |
+| `@goastian/astian-ui/icons/*` | Legacy assets that a consumer may still need to copy into its public directory. |
 
-La entrada `./cloud` permite que un producto que solo necesita el núcleo no
-incorpore JavaScript ni CSS de almacenamiento. Los subpaths nativos permiten
-consumir formularios y marketing sin cargar el entrypoint monolítico, Quasar,
-Roboto, Material Icons ni su reset. Todas las entradas de estilo son fontless
-salvo `fonts.css`; no contienen WOFF en base64.
+The `./cloud` entrypoint prevents products that need only the core from pulling
+in storage JavaScript or CSS. Native subpaths make forms and marketing usable
+without loading the monolithic entrypoint, Quasar, Roboto, Material Icons, or
+their reset. Every style entrypoint except `fonts.css` is fontless and contains
+no base64-encoded WOFF assets.
 
-## Configuración del consumidor
+## Consumer setup
 
-En la integración convencional, Quasar debe instalarse antes de `AstianUI`. El
-plugin registra los componentes del núcleo y configura el mapeo de Material
-Icons Round:
+In a conventional integration, Quasar must be registered before `AstianUI`.
+The plugin registers core components and configures the Material Icons Round
+mapping:
 
 ```ts
 import { createApp } from 'vue'
@@ -98,24 +99,25 @@ app.use(AstianUI)
 app.mount('#app')
 ```
 
-Un producto que usa Cloud añade:
+A product that uses Cloud also imports:
 
 ```ts
 import '@goastian/astian-ui/cloud.css'
 ```
 
-Material Icons Round ya no se descarga por defecto. Si la aplicación conserva
-el icon set basado en ligaduras, debe optar por la fuente:
+Material Icons Round is no longer downloaded by default. If the application
+keeps the ligature-based icon set, it must opt into the font:
 
 ```ts
 import '@goastian/astian-ui/fonts.css'
 ```
 
-`fonts.css` usa `font-display: block` para que las ligaduras no aparezcan como
-texto durante la carga. Una aplicación con iconos SVG puede omitirlo.
+`fonts.css` uses `font-display: swap`; the reference shell loads only the modern
+WOFF2 file and does not emit the legacy WOFF from `@quasar/extras`. An
+application with SVG icons can omit this font entirely.
 
-También se pueden importar componentes concretos sin depender del registro
-global:
+Individual components can also be imported without relying on global
+registration:
 
 ```vue
 <script setup lang="ts">
@@ -134,10 +136,10 @@ import {
 </script>
 ```
 
-### Formularios nativos sin Quasar
+### Native forms without Quasar
 
-Los cuatro controles P0 ligeros usan HTML semántico. Un formulario público sólo
-necesita los tokens, el CSS aislado y los subpaths que realmente renderiza:
+The four lightweight P0 controls use semantic HTML. A public form needs only the
+tokens, isolated CSS, and subpaths it actually renders:
 
 ```ts
 import '@goastian/astian-ui/tokens.css'
@@ -149,19 +151,20 @@ import { AInput } from '@goastian/astian-ui/input'
 import { ATextarea } from '@goastian/astian-ui/textarea'
 ```
 
-No se debe importar `base.css`, `style.css`, `quasar/src/css/index.sass` ni
-`fonts.css` para esta ruta. `AButton` usa `nativeType="submit"` para el tipo
-HTML; su prop `type` sigue representando la variante visual. Los slots
-`icon-start`, `icon-end`, `prepend` y `end-icon` permiten usar SVG del producto
-sin descargar una fuente de iconos. Si Vue Router ya está instalado, `AButton`
-mantiene navegación SPA para `to`; sin Router registrado usa un enlace nativo.
-Los props de icono por nombre quedan para la integración convencional que sí
-opta por `fonts.css`; en la ruta modular se recomiendan los slots SVG.
+Do not import `base.css`, `style.css`, `quasar/src/css/index.sass`, or
+`fonts.css` for this path. `AButton` uses `nativeType="submit"` for the HTML
+type; its `type` prop still represents the visual variant. The `icon-start`,
+`icon-end`, `prepend`, and `end-icon` slots let a product use SVG without
+downloading an icon font. If Vue Router is already installed, `AButton`
+preserves SPA navigation for `to`; without a registered router it renders a
+native anchor. Name-based icon props remain available to conventional
+integrations that opt into `fonts.css`; SVG slots are recommended for the
+modular path.
 
-### SSR e Inertia sin Vue Router
+### SSR and Inertia without Vue Router
 
-Las entradas nuevas pueden evaluarse y renderizarse en Node sin `window`,
-`document` ni `navigator`. Este ejemplo usa Vue SSR directamente:
+The new entrypoints can be evaluated and rendered in Node without `window`,
+`document`, or `navigator`. This example uses Vue SSR directly:
 
 ```ts
 import { renderToString } from 'vue/server-renderer'
@@ -170,17 +173,17 @@ import { AInput } from '@goastian/astian-ui/input'
 
 const app = createSSRApp({
   render: () => h(AInput, {
-    label: 'Título',
+    label: 'Title',
     name: 'title',
-    modelValue: 'Borrador'
+    modelValue: 'Draft'
   })
 })
 
 const html = await renderToString(app)
 ```
 
-En Inertia se inyecta `Link` como renderer. Astian UI siempre entrega `href` y
-no importa ni configura Vue Router:
+In Inertia, inject `Link` as the renderer. Astian UI always provides `href` and
+neither imports nor configures Vue Router:
 
 ```vue
 <script setup lang="ts">
@@ -199,33 +202,33 @@ import '@goastian/astian-ui/tokens.css'
 import '@goastian/astian-ui/marketing.css'
 
 const entries: AMarketingNavEntry[] = [
-  { kind: 'link', id: 'inicio', label: 'Inicio', href: '/' },
+  { kind: 'link', id: 'home', label: 'Home', href: '/' },
   {
     kind: 'menu',
-    id: 'productos',
-    label: 'Productos',
+    id: 'products',
+    label: 'Products',
     columns: [
       {
-        id: 'privacidad',
-        label: 'Privacidad',
+        id: 'privacy',
+        label: 'Privacy',
         items: [
-          { id: 'midori', label: 'Midori', href: '/midori', description: 'Navegación privada' }
+          { id: 'midori', label: 'Midori', href: '/midori', description: 'Private browsing' }
         ]
       },
       {
-        id: 'servicios',
-        label: 'Servicios',
+        id: 'services',
+        label: 'Services',
         items: [
-          { id: 'cloud', label: 'Astian Cloud', href: '/cloud', description: 'Archivos protegidos' }
+          { id: 'cloud', label: 'Astian Cloud', href: '/cloud', description: 'Protected files' }
         ]
       }
     ],
-    cta: { id: 'todos', label: 'Ver productos', href: '/productos' }
+    cta: { id: 'all', label: 'View products', href: '/productos' }
   }
 ]
 
 const locales: ALocaleOption[] = [
-  { locale: 'es', label: 'Español', shortLabel: 'ES', href: '/es/cms' },
+  { locale: 'es', label: 'Spanish', shortLabel: 'ES', href: '/es/cms' },
   { locale: 'en', label: 'English', shortLabel: 'EN', href: '/en/cms' }
 ]
 </script>
@@ -240,105 +243,105 @@ const locales: ALocaleOption[] = [
     :link-component="Link"
   />
   <AMarketingAction href="/registro" :link-component="Link">
-    Crear cuenta
+    Create account
   </AMarketingAction>
 </template>
 ```
 
-Las URLs de locale deben llegar del servidor con la ruta equivalente, query y
-fragmento ya resueltos. Si un enlace es externo, descarga un archivo o abre
-`target="_blank"`, el componente usa un `<a>` nativo. En pestaña nueva fusiona
-`noopener noreferrer` con el `rel` proporcionado.
+Locale URLs must come from the server with the equivalent path, query, and
+fragment already resolved. When a link is external, downloads a file, or opens
+with `target="_blank"`, the component uses a native `<a>`. For a new tab it
+merges `noopener noreferrer` with the supplied `rel`.
 
-El alias interno `@` apunta a `src` durante el desarrollo del repositorio. No es
-un alias público: los consumidores deben usar las entradas del paquete.
+The internal `@` alias points to `src` during repository development. It is not
+a public alias: consumers must use package entrypoints.
 
-### Aliases públicos
+### Public aliases
 
-Los aliases conservan el mismo componente y contrato; no son implementaciones
-duplicadas.
+Aliases preserve the same component and contract; they are not duplicate
+implementations.
 
-| Alias | Implementación |
+| Alias | Implementation |
 | --- | --- |
 | `ASidebar` | `ANavigationRail` |
 | `ASidePanel` | `ADrawer` |
 | `ASearchAutocomplete` | `ACombobox` |
-| `AColorPicker` | `ASwatchPicker` desde `./cloud` |
-| `AMetricCard` | `AStatCard` desde `./cloud` |
+| `AColorPicker` | `ASwatchPicker` from `./cloud` |
+| `AMetricCard` | `AStatCard` from `./cloud` |
 
-## Inventario P0: núcleo reutilizable
+## P0 inventory: reusable core
 
-| Familia | Responsabilidad y contrato controlado |
+| Family | Responsibility and controlled contract |
 | --- | --- |
-| `AAppShell` | Regiones `header`, `navigation`, contenido principal y `aside`; skip link y foco opcional al cambiar `routeKey`. No contiene lógica de sesión ni de producto. |
-| `ANavigationRail`, `ANavItem`, `ABreadcrumbs` | Navegación por `to` o `href`, nunca ambos. El rail controla `v-model:collapsed` y `v-model:mobile-open`; emite `select`. Los elementos emiten `activate`/`navigate` sin ejecutar lógica de negocio. |
-| `ADrawer`, `APopover`, `AContextMenu` | Overlays controlados con `v-model`; emiten apertura, cierre o selección. `ADrawer` puede ser modal o no modal y reporta el motivo de cierre. |
-| `ACheckbox`, `ACheckboxGroup` | `v-model` booleano o colección tipada; soportan indeterminado, hint, error y disabled. |
-| `ARadio`, `ARadioGroup` | Selección excluyente por `v-model` tipado; opciones con descripción, orientación, `readonly`, validación y navegación por flechas, `Home`, `End` y espacio. |
-| `AInput`, `ATextarea`, `AButton` | Controles HTML nativos, aislados de Quasar y seguros en SSR. `AInput` conserva `date` y `datetime-local` como strings locales; `AButton` separa variante visual de `nativeType`. |
-| `AStepper` | Colección de pasos y `v-model:activeStep`; emite `next`, `back`, `cancel`, `complete` y `step-request`. La aplicación valida y navega. No se publica `AWizard` hasta validar una composición adicional real. |
-| `ALinearProgress`, `AQuotaMeter` | Progreso determinado o indeterminado, rango y estado semántico. La cuota recibe `used`/`limit` y permite formateo externo. |
-| `AEmptyState`, `AErrorState` | Presentación de estados sin copy de producto obligatorio. `AErrorState` emite `retry`; ambos exponen slots para acciones controladas por el consumidor. |
-| `ACombobox` | Selección por `v-model`, opciones locales o loader asíncrono cancelable con `AbortSignal`; emite `select` y `clear`. |
-| `ADataTable` | Columnas y filas tipadas, sorting, selección, acciones y estados `loading`/`empty`/`error`. La fuente de verdad entra por `selected` y `sort`; los cambios salen por `update:selected`, `update:sort`, `row-activate` y `retry`. |
-| `APagination` | `v-model` discriminado para página o cursor; emite `change` y puede sincronizar página/tamaño con el query string. |
-| `ADropzone`, `AFileUpload` | Selección, drag and drop, URL opcional y validadores cancelables. Controlan archivos/URL con `v-model` y emiten `accepted`, `rejected`, `validated`, `remove` o `submit`; no suben archivos. |
-| `AUploadQueue` | Renderiza progreso global y por archivo; recibe los items y emite `pause`, `resume`, `cancel` y `retry`. No conoce el transporte. |
+| `AAppShell` | `header`, `navigation`, main-content, and `aside` regions; skip link and optional focus management when `routeKey` changes. It contains no session or product logic. |
+| `ANavigationRail`, `ANavItem`, `ABreadcrumbs` | Navigation through either `to` or `href`, never both. The rail controls `v-model:collapsed` and `v-model:mobile-open` and emits `select`. Items emit `activate`/`navigate` without running business logic. |
+| `ADrawer`, `APopover`, `AContextMenu` | Controlled overlays using `v-model`; they emit open, close, or selection intent. `ADrawer` may be modal or non-modal and reports the close reason. |
+| `ACheckbox`, `ACheckboxGroup` | Boolean or typed-collection `v-model`; supports indeterminate, hint, error, and disabled states. |
+| `ARadio`, `ARadioGroup` | Exclusive selection through a typed `v-model`; options support descriptions, orientation, `readonly`, validation, arrow navigation, `Home`, `End`, and Space. |
+| `AInput`, `ATextarea`, `AButton` | Native HTML controls, isolated from Quasar and safe for SSR. `AInput` preserves `date` and `datetime-local` as local strings; `AButton` separates its visual variant from `nativeType`. |
+| `AStepper` | Step collection and `v-model:activeStep`; emits `next`, `back`, `cancel`, `complete`, and `step-request`. The application validates and navigates. `AWizard` will not be published until another real composition has been validated. |
+| `ALinearProgress`, `AQuotaMeter` | Determinate or indeterminate progress, range, and semantic status. Quota receives `used`/`limit` and supports external formatting. |
+| `AEmptyState`, `AErrorState` | State presentation without mandatory product copy. `AErrorState` emits `retry`; both expose slots for consumer-controlled actions. |
+| `ACombobox` | Selection through `v-model`, local options, or a cancelable asynchronous loader with `AbortSignal`; emits `select` and `clear`. |
+| `ADataTable` | Typed columns and rows, sorting, selection, actions, and `loading`/`empty`/`error` states. Source-of-truth values enter through `selected` and `sort`; changes leave through `update:selected`, `update:sort`, `row-activate`, and `retry`. |
+| `APagination` | Discriminated `v-model` for pages or cursors; emits `change` and can synchronize page/size with the query string. |
+| `ADropzone`, `AFileUpload` | File selection, drag and drop, optional URL, and cancelable validators. They control files/URL through `v-model` and emit `accepted`, `rejected`, `validated`, `remove`, or `submit`; they do not upload files. |
+| `AUploadQueue` | Renders global and per-file progress; receives items and emits `pause`, `resume`, `cancel`, and `retry`. It knows nothing about transport. |
 
-## Inventario P1: marketing
+## P1 inventory: marketing
 
-Estos componentes viven también en la entrada raíz por compatibilidad, pero el
-camino recomendado para una web pública son sus subpaths y `marketing.css`.
+These components also remain in the root entrypoint for compatibility, but
+their subpaths and `marketing.css` are the recommended path for public sites.
 
-| Familia | Responsabilidad y contrato controlado |
+| Family | Responsibility and controlled contract |
 | --- | --- |
-| `AMarketingNavigation` | Recibe enlaces directos o menús con columnas; controla `v-model:open-menu` y `v-model:mobile-open`. Abre por click, hover intencional o teclado; cierra por `Escape`, click exterior, salida de foco o navegación. El panel desktop usa dos columnas y el drawer móvil contiene y restaura foco. Expone slots `brand`, `item-icon`, `item-name`, `item-description`, `cta`, `header-actions` y `mobile-header`. |
-| `ALocaleSwitch` | Recibe URLs equivalentes generadas por servidor y publica enlaces con `href`, `hreflang`, `lang` y `aria-current="page"`. Usa lista inline hasta tres locales y disclosure compacto para cuatro o más. |
-| `AMarketingAction` | Enlace semántico primario o secundario con texto en una línea y slots `icon-start`/`icon-end`. Acepta `<a>` nativo o un `linkComponent` como `Link` de Inertia, sin asumir Vue Router. |
+| `AMarketingNavigation` | Receives direct links or column menus; controls `v-model:open-menu` and `v-model:mobile-open`. Opens on click, intentional hover, or keyboard input; closes on `Escape`, outside click, focus exit, or navigation. The desktop panel uses two columns, and the mobile drawer contains and restores focus. Exposes `brand`, `item-icon`, `item-name`, `item-description`, `cta`, `header-actions`, and `mobile-header` slots. |
+| `ALocaleSwitch` | Receives equivalent server-generated URLs and renders links with `href`, `hreflang`, `lang`, and `aria-current="page"`. Uses an inline list for up to three locales and a compact disclosure for four or more. |
+| `AMarketingAction` | Semantic primary or secondary link with single-line text and `icon-start`/`icon-end` slots. Accepts a native `<a>` or a `linkComponent` such as Inertia `Link`, without assuming Vue Router. |
 
-## Inventario P1: Astian Cloud
+## P1 inventory: Astian Cloud
 
-Estos patrones se importan exclusivamente desde `@goastian/astian-ui/cloud`.
+These patterns are imported exclusively from `@goastian/astian-ui/cloud`.
 
-| Familia | Responsabilidad y contrato controlado |
+| Family | Responsibility and controlled contract |
 | --- | --- |
-| `ACloudPageHeader`, `ACloudToolbar` | Título, contexto y composición de búsqueda, creación, filtros, orden y vista. La toolbar controla `v-model:search`, `v-model:view` y `v-model:sort`; emite intenciones de crear, filtrar o buscar. |
-| `AFileItem`, `AFileCard`, `AFolderItem` | Presentan archivo/carpeta y aceptan el mismo contrato DnD controlado. La acción visible “Mover…” ofrece alternativa operable por teclado. |
-| `AFileGrid`, `AFileTable` | Vistas grid/list controladas mediante `selectedIds`, `activeId` y, en tabla, `sort`. El grid puede activar `selectionInteraction="marquee"` sin crear otro modelo de selección. |
-| `AFolderTree`, `AFolderPicker` | Jerarquía controlada y destino DnD. `Alt+M` emite `move-request`; el consumidor puede abrir `AFolderPicker` como alternativa al puntero. |
-| `AMediaGrid`, `APhotoTile` | Galería responsive y selección múltiple controlada; `AMediaGrid` comparte el contrato marquee del grid de archivos. |
-| `AMediaViewer`, `AFilePreview` | Imagen, PDF, audio, video o fallback. Controlan apertura/zoom y emiten navegación, descarga, carga, error o reintento. La URL y sus permisos pertenecen al consumidor. |
-| `AFileDetailsPanel` | Panel controlado mediante `v-model` y `v-model:active-section`. Monta progresivamente slots `details`, `tags`, `permissions`, `comments`, `versions` y `activity`; emite `sectionChange`, `retry` y `close`. |
-| `ANotificationCenter` | Recibe notificaciones y estado de conexión; emite lectura, acción, reintento y carga adicional. No abre sockets ni hace polling. |
-| `AStatCard` (`AMetricCard`) | Presenta cuota, actividad o métricas con números tabulares, tendencia y progreso. |
-| `ASwatchPicker` (`AColorPicker`) | Selección por `v-model` de swatches tokenizados con nombre accesible; el color nunca es el único indicador. |
+| `ACloudPageHeader`, `ACloudToolbar` | Title, context, and composition for search, creation, filters, sorting, and view. The toolbar controls `v-model:search`, `v-model:view`, and `v-model:sort`; it emits create, filter, or search intent. |
+| `AFileItem`, `AFileCard`, `AFolderItem` | Present a file/folder and accept the same controlled DnD contract. The visible “Move…” action provides a keyboard-operable alternative. |
+| `AFileGrid`, `AFileTable` | Grid/list views controlled through `selectedIds`, `activeId`, and, for tables, `sort`. The grid can enable `selectionInteraction="marquee"` without creating another selection model. |
+| `AFolderTree`, `AFolderPicker` | Controlled hierarchy and DnD destination. `Alt+M` emits `move-request`; the consumer can open `AFolderPicker` as an alternative to pointer input. |
+| `AMediaGrid`, `APhotoTile` | Responsive gallery and controlled multi-selection; `AMediaGrid` shares the file grid marquee contract. |
+| `AMediaViewer`, `AFilePreview` | Image, PDF, audio, video, or fallback. They control open/zoom state and emit navigation, download, load, error, or retry intent. The URL and its permissions belong to the consumer. |
+| `AFileDetailsPanel` | Panel controlled through `v-model` and `v-model:active-section`. Progressively mounts `details`, `tags`, `permissions`, `comments`, `versions`, and `activity` slots; emits `sectionChange`, `retry`, and `close`. |
+| `ANotificationCenter` | Receives notifications and connection state; emits read, action, retry, and load-more intent. It does not open sockets or poll. |
+| `AStatCard` (`AMetricCard`) | Presents quota, activity, or metrics using tabular numbers, trend, and progress. |
+| `ASwatchPicker` (`AColorPicker`) | `v-model` selection of tokenized swatches with an accessible name; color is never the only indicator. |
 
-Los tipos `ACloudItem`, `ACloudFile`, `ACloudFolder`, `AFolderTreeNode`,
-`ACloudMedia`, `AFilePreviewSource`, `ACloudNotification` y `ACloudMetric`
-también salen de `./cloud`.
+The `ACloudItem`, `ACloudFile`, `ACloudFolder`, `AFolderTreeNode`,
+`ACloudMedia`, `AFilePreviewSource`, `ACloudNotification`, and `ACloudMetric`
+types are also exported from `./cloud`.
 
-### Drag and drop interno
+### Internal drag and drop
 
 `ACloudDragPayload`, `ACloudDropTarget`, `ACloudDropPosition`,
-`ACloudDropEffect` y `ACloudDropState` forman el contrato público. Los
-componentes emiten `drag-start`, `drag-end`, `drop-target-change` y
-`drop-request`; nunca cambian la colección por su cuenta. El consumidor valida
-permisos, cifrado, conflictos y API y mantiene `dropState="pending"` hasta la
-confirmación. `invalid` comunica rechazo sin simular una operación completada.
+`ACloudDropEffect`, and `ACloudDropState` form the public contract. Components
+emit `drag-start`, `drag-end`, `drop-target-change`, and `drop-request`; they
+never mutate the collection themselves. The consumer validates permissions,
+encryption, conflicts, and API behavior and keeps `dropState="pending"` until
+confirmation. `invalid` communicates rejection without simulating a completed
+operation.
 
-### Selección marquee
+### Marquee selection
 
-`AFileGrid` y `AMediaGrid` aceptan `selectionInteraction="marquee"`. El
-resultado sigue en `v-model:selectedIds`; `selection-start`,
-`selection-change` y `selection-end` sirven para telemetría o barras de acción.
-Shift añade, Ctrl/Cmd alterna, Escape cancela y Ctrl/Cmd+A selecciona los
-elementos habilitados. La interacción ignora controles internos y punteros
-táctiles.
+`AFileGrid` and `AMediaGrid` accept `selectionInteraction="marquee"`. The
+result remains in `v-model:selectedIds`; `selection-start`, `selection-change`,
+and `selection-end` support telemetry or action bars. Shift adds, Ctrl/Cmd
+toggles, Escape cancels, and Ctrl/Cmd+A selects enabled items. The interaction
+ignores internal controls and touch pointers.
 
-## Contratos controlados y eventos
+## Controlled contracts and events
 
-Astian UI presenta estado y emite intenciones. El consumidor conserva la fuente
-de verdad y aplica el cambio cuando su dominio lo permite:
+Astian UI presents state and emits intent. The consumer retains the source of
+truth and applies a change when its domain allows it:
 
 ```vue
 <script setup lang="ts">
@@ -354,11 +357,11 @@ const activeId = ref<string | number | null>(null)
 const folders = ref<AFolderTreeNode[]>([])
 
 function requestChildren(node: AFolderTreeNode) {
-  // El dominio carga los hijos y actualiza `folders`.
+  // The domain loads children and updates `folders`.
 }
 
 function confirmDestination(node: AFolderTreeNode) {
-  // El dominio valida permisos y ejecuta mover/copiar.
+  // The domain validates permissions and performs the move/copy.
 }
 </script>
 
@@ -374,103 +377,117 @@ function confirmDestination(node: AFolderTreeNode) {
 </template>
 ```
 
-Los eventos no garantizan que una operación haya terminado. Por ejemplo,
-`submit`, `download`, `pause` o `confirm` expresan intención; el padre debe
-actualizar `loading`, `error`, progreso, permisos o la colección resultante.
+Events do not guarantee that an operation has completed. For example, `submit`,
+`download`, `pause`, or `confirm` express intent; the parent must update
+`loading`, `error`, progress, permissions, or the resulting collection.
 
-## Límites de responsabilidad
+## Responsibility boundaries
 
-Astian UI no contiene:
+Astian UI does not contain:
 
-- Axios, `fetch` ni otro cliente de red.
-- Stores de Pinia ni estado global de Astian Cloud.
-- Cifrado, sincronización, resolución de permisos o reglas de negocio.
-- Transporte de subida, polling, WebSocket o persistencia.
-- Copy obligatorio de producto dentro de las primitivas del núcleo.
+- Axios, `fetch`, or another network client.
+- Pinia stores or global Astian Cloud state.
+- Encryption, synchronization, permission resolution, or business rules.
+- Upload transport, polling, WebSocket, or persistence.
+- Mandatory product copy inside core primitives.
 
-Los componentes de upload reciben `File`, validadores y estado; los visores
-reciben fuentes ya autorizadas; los componentes de archivo reciben modelos
-presentacionales y emiten acciones. El producto decide si una acción es válida,
-ejecuta la API y devuelve el nuevo estado.
+Upload components receive `File`, validators, and state; viewers receive
+already-authorized sources; file components receive presentational models and
+emit actions. The product decides whether an action is valid, calls the API,
+and returns the new state.
 
-## Tokens, temas y Quasar
+## Tokens, themes, and Quasar
 
-Los tokens viven en `src/css/tokens.css`, los estilos globales en
-`src/css/astian.scss` y las variables de integración con Quasar en
-`src/css/quasar.variables.scss`.
+Portable design tokens live in the root `tokens.css`; `src/css/tokens.css`
+maps them to the backward-compatible `--a-*` API. Global styles live in
+`src/css/astian.scss`, and Quasar integration variables live in
+`src/css/quasar.variables.scss`. The shared visual and interaction contract for
+all reference applications is documented in `design.md`.
 
-- Todo color, espacio, radio, sombra, tamaño de control y movimiento debe usar
-  un token `--a-*`.
-- Los componentes admiten `light`, `dark` y `system` mediante
-  `useThemeMode`, que sincroniza la preferencia con Quasar Dark.
-- No se debe sobrescribir el DOM interno de Quasar ni usar clases `q-*` como
-  contrato desde una aplicación consumidora.
-- `AIcon` usa Material Icons Round. Los SVG legacy se activan con
-  `<AIcon name="shield-encrypt" legacy />` y deben copiarse desde
-  `dist-lib/icons` a `/icons` cuando todavía sean necesarios.
+- Every color, space, radius, shadow, control size, and motion value must use a
+  portable token or its `--a-*` compatibility alias.
+- Components support `light`, `dark`, and `system` through `useThemeMode`, which
+  synchronizes storage, `prefers-color-scheme`, the root `data-theme`, and
+  Quasar Dark.
+- Do not override Quasar's internal DOM or use `q-*` classes as a contract from
+  a consuming application.
+- `AIcon` uses Material Icons Round. Enable legacy SVGs with
+  `<AIcon name="shield-encrypt" legacy />` and copy them from `dist-lib/icons`
+  to `/icons` when they are still required.
 
-## Teclado y accesibilidad
+## Keyboard and accessibility
 
-Los componentes interactivos reservan targets de al menos `--a-target-min`
-(44 × 44 px), foco visible y nombres accesibles. La integración consumidora debe
-conservar labels, estados y orden de foco.
+Interactive components reserve targets of at least `--a-target-min` (44 × 44
+px), visible focus, and accessible names. The consuming integration must
+preserve labels, states, and focus order.
 
-- `AAppShell` ofrece skip link y puede enfocar el contenido al cambiar de ruta.
-- Árboles: flechas arriba/abajo recorren nodos visibles; derecha
-  expande/entra, izquierda contrae/vuelve al padre; `Home`, `End`, `Enter`,
-  espacio, `*` y búsqueda por escritura conservan el patrón ARIA tree.
-- Comboboxes y menús usan navegación por flechas, `Home`/`End`,
-  `Enter`/espacio y `Escape` según el patrón correspondiente.
-- Los grupos de radio recorren sólo opciones habilitadas con flechas,
-  `Home`/`End` y seleccionan con espacio.
-- Los steppers anuncian el paso activo en una live region; una solicitud de
-  cambio no mueve el foco ni modifica la navegación del producto.
-- `AContextMenu` se puede abrir con click derecho, `Shift+F10` o la tecla de
-  menú contextual y devuelve el foco al disparador.
-- Drawers y visores modales contienen el foco; los no modales no lo atrapan.
-  Los overlays cierran con `Escape` cuando está habilitado y restauran foco.
-- La navegación marketing usa listas y disclosures nativos, panel de dos
-  columnas desde 768 px y drawer hasta 767 px. `Tab` conserva el orden web;
-  flechas, `Home`, `End` y `Escape` administran el contexto abierto.
-- Los selectores de idioma conservan enlaces reales aunque se mejore su
-  presentación como disclosure.
-- Reduced motion, loading, empty, error y disabled son estados del contrato.
+- `AAppShell` provides a skip link and can focus content when the route changes.
+- Trees: Up/Down arrows traverse visible nodes; Right expands/enters, Left
+  collapses/returns to the parent; `Home`, `End`, `Enter`, Space, `*`, and
+  typeahead search preserve the ARIA tree pattern.
+- Comboboxes and menus use arrow navigation, `Home`/`End`, `Enter`/Space, and
+  `Escape` according to their corresponding pattern.
+- Radio groups traverse only enabled options with arrows and `Home`/`End`, and
+  select with Space.
+- Steppers announce the active step in a live region; a change request neither
+  moves focus nor changes product navigation.
+- `AContextMenu` opens with right click, `Shift+F10`, or the context-menu key and
+  returns focus to its trigger.
+- Modal drawers and viewers contain focus; non-modal variants do not trap it.
+  Overlays close with `Escape` when enabled and restore focus.
+- Marketing navigation uses native lists and disclosures, a two-column panel
+  from 768 px, and a drawer through 767 px. `Tab` preserves web order; arrows,
+  `Home`, `End`, and `Escape` manage the open context.
+- Locale switches preserve real links even when their presentation is enhanced
+  as a disclosure.
+- Reduced motion, loading, empty, error, and disabled are contract states.
 
-Cada integración debe seguir verificando reflow a 320 px, zoom al 200 %,
-contraste WCAG 2.2 AA y navegación completa sin mouse dentro del producto real.
+Every integration must continue verifying reflow at 320 px, 200% zoom, WCAG
+2.2 AA contrast, and complete mouse-free navigation inside the real product.
 
-## Calidad y versión
+## Quality and versioning
 
 ```bash
-npm run check         # contratos TypeScript/Vue
-npm test              # pruebas unitarias y funcionales
-npm run build         # aplicación y biblioteca
-npm run test:package  # exports, fontless y presupuestos gzip
-npm run test:consumer # tarball, SSR Node y perfiles Vite aislados
-npm run test:marketing # 320, 375, 414 y 768 px, foco y reduced motion
-npm run test:e2e      # comprobación visual dirigida de rutas/temas/viewports
-npm pack --dry-run    # contenido exacto del tarball
+npm run check          # TypeScript/Vue contracts
+npm test               # unit and functional tests
+npm run build          # application and library
+npm run test:package   # exports, fontless checks, and gzip budgets
+npm run test:consumer  # tarball, Node SSR, and isolated Vite profiles
+npm run test:marketing # 320, 375, 414, and 768 px; focus and reduced motion
+npm run test:ui        # /ui catalog, command palette, reflow, targets, and DOM
+npm run test:ui-budget # lazy chunks and catalog gzip budgets
+npm run test:e2e       # directed visual checks for routes/themes/viewports
+npm pack --dry-run     # exact tarball contents
 ```
 
-La puerta principal del paquete es la integración: build ESM/CJS, declaraciones
-sin fugas de Quasar, tarball instalable, importación Node sin DOM, consumidor
-Quasar convencional y perfiles Vite modulares comparados contra un baseline
-Vue. Las pruebas de componente cubren contratos críticos; Playwright valida los
-breakpoints e interacciones que necesitan un navegador real.
+Integration is the package's primary gate: ESM/CJS builds, declarations without
+Quasar leaks, an installable tarball, DOM-free Node imports, a conventional
+Quasar consumer, and modular Vite profiles compared with a Vue baseline.
+Component tests cover critical contracts; Playwright validates breakpoints and
+interactions that require a real browser.
 
-Medición del candidato `0.4.0` en un consumidor Vite limpio, como delta gzip
-sobre el mismo baseline Vue y `tokens.css`:
+`/ui` is the package's living visual contract. Every new public export or
+state/behavior change must also update `src/pages/ui/catalog.ts` and the
+corresponding panel. The catalog test compares that inventory with the
+lightweight `publicComponentNames` manifest and verifies the manifest against
+the migration matrix and real exports. The build splits Foundations,
+Components, and Patterns into on-demand chunks so documenting an API does not
+require mounting the whole catalog in the initial DOM.
 
-| Perfil | JavaScript | CSS |
+Candidate `0.4.0` measured in a clean Vite consumer as a gzip delta over the
+same Vue baseline plus `tokens.css`:
+
+| Profile | JavaScript | CSS |
 | --- | ---: | ---: |
-| `input` | +3.618 B | +1.894 B |
-| `forms` | +5.191 B | +1.894 B |
-| `marketing` | +6.440 B | +2.058 B |
+| `input` | +3,618 B | +1,894 B |
+| `forms` | +5,191 B | +1,894 B |
+| `marketing` | +6,440 B | +2,058 B |
 
-Los tres grafos se verifican sin Quasar, `cloud` ni la entrada monolítica.
+All three graphs are verified without Quasar, `cloud`, or the monolithic
+entrypoint.
 
-El proyecto usa SemVer. Mientras la API está en `0.x`, una incompatibilidad
-incrementa la versión minor; una adición compatible también corresponde a una
-minor. Ninguna entrada o componente se considera publicado solo por existir en
-el repositorio. Consulta [RELEASE.md](./RELEASE.md) y
+The project uses SemVer. While the API remains in `0.x`, an incompatible change
+increments the minor version; a compatible addition also belongs in a minor
+release. No entrypoint or component is considered published merely because it
+exists in the repository. See [RELEASE.md](./RELEASE.md) and
 [CHANGELOG.md](./CHANGELOG.md).
