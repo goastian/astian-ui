@@ -94,7 +94,7 @@
     "**/*.scss"
   ],
   "peerDependencies": {
-    "quasar": "^2.16.0",
+    "quasar": "^2.23.4",
     "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
@@ -115,7 +115,7 @@
     "vite": "^8.1.5",
     "vitest": "^4.1.10",
     "vue-tsc": "^3.1.0",
-    "quasar": "^2.16.0",
+    "quasar": "^2.23.4",
     "vue": "^3.5.0",
     "vue-router": "^5.2.0"
   },
